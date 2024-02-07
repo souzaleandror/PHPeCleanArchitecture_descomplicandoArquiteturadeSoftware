@@ -260,3 +260,400 @@ Nesta aula, aprendemos:
 O que é arquitetura de software
 O que são entidades e que elas possuem uma identidade única
 Sobre Value Objects e que a sua igualdade se dá pela comparação dos seus valores
+
+#### 07/02/2024
+
+@02-Enriquecendo o domínio
+
+@@01
+Projeto da aula anterior
+
+Caso queira, você pode baixar aqui o projeto do curso no ponto em que paramos na aula anterior.
+
+https://caelum-online-public.s3.amazonaws.com/1774-php-arquitetura-introducao/01/php-arquitetura-projeto-aula-1-completo.zip
+
+@@02
+Adicionando telefones
+
+[00:00] Bem-vindos de volta a mais um capítulo deste treinamento de arquitetura utilizando php. Deixei um desafio para vocês no último vídeo onde queria que vocês criassem uma classe que representasse um CPF, que também é um value object, a gente não precisa de nenhum outro identificador para o CPF porque se temos dois objetos CPF com o mesmo número, significa que é o mesmo CPF.
+[00:25] Criei minha classe e coloquei algumas coisas novas para vocês conhecerem.
+
+class Cpf
+{
+    private string $numero;
+
+    public function __construct(string $numero)
+    {
+        $this->setNumero($numero);
+    }
+
+    private function setNumero(string $numero): void
+    {
+        $opcoes = [
+            'options' => [
+                'regexp' => '/\d{3}\.\d{3}\.\d{3}\-\d{2}/'
+            ]
+        ];
+        if(filter_var($numero, filter: FILTER_VALIDATE_REGEXP, $opcoes) == false) {
+        throw new \InvalidArgumentException(message 'CPF no formato inválido');
+        }
+
+        $this->numero = $numero;
+    }COPIAR CÓDIGO
+[00:31] Primeiro, aqui no meu construtor não estou fazendo filtro diretamente. Estou chamando um método privado chamado setNumero. E por que primeiro o nome está assim, misturando inglês com português, segundo, por que esse método está privado?
+
+[00:50] $this->setNumero(#numero); é chamado de self encapsulation, ou auto encapsulamento. Aqui, estou criando um método privado simplesmente para diminuir o tamanho do meu construtor. Ou seja, estou separando meu código em partes menores.
+
+[01:08] Dentro do meu método que está encapsulando meu próprio código, que estou tendo um método privado dentro da minha classe só para separar melhor o código, estou fazendo também o que é chamado de guard clause, ou cláusula de guarda. Estou fazendo um filtro antes de tentar fazer uma atribuição, antes de tentar realizar a ação desejada.
+
+[01:30] Aqui não é muito conceito novo, mas vale a pena citar o motivo de ter feito dessa forma para você conhecer esses termos, e até para poder dar uma pesquisada mais a fundo.
+
+[01:42] Além de conseguir criar um CPF com número definido chamando esse método, temos mais uma vez o filter_var, só que dessa vez passando um array de opções, e dentro dessas opções do filter_var posso ter esse parâmetro options, e dentro como estou fazendo um filtro de regexp, ou seja, expressão regular, posso definir a expressão regular. E minha expressão regular é uma sequência de três números, ponto, outra sequência de três números, ponto, mais uma sequência de três números, traço, e uma sequência de dois números.
+
+'regexp' => '/\d{3}\.\d{3}\.\d{3}\-\d{2}/'COPIAR CÓDIGO
+[02:22] Se o número que eu passar não estiver nesse formato, eu recebo uma exceção. Caso contrário inicializo. E tenho da mesma forma que fizemos com e-mail um método toString.
+
+public function __toString(): string
+{
+    return $this->numero;
+    }
+} COPIAR CÓDIGO
+[02:35] Se isso estiver muito complexo para entender, como deixei no exercício pedindo como desafio, criei um teste para isso.
+
+class CpfTest extends TestCase
+{
+    public function testCpfNumeroNoFormatoInvalidoNaoDevePoderExistir()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        new Cpf(numero: '12345678910');
+    }
+
+public function testCpfDevePoderSerRepresentadoComoString()
+{
+    $cpf = new Cpf(numero '123.456.789-10');
+    $this->assertSame(expected: '123.456.789-10', (string) $cpf);
+    }
+}COPIAR CÓDIGO
+[02:46] Estou verificando que se eu passar um CPF, criar um CPF com número inválido, espero que minha exceção seja lançada, uma exceção do tipo InvalidArgumentException.
+
+[02:53] Agora, se eu criar um CPF válido, quero poder representar ele como string. Estou garantindo que é a mesma coisa essa string e o CPF, que é um objeto do tipo CPF representado como string. E como já estou criando testes, como já configurei o ambiente com php unit e tudo, criei também o mesmo teste, só que para um e-mail. Estou tentando criar um e-mail inválido e depois crio um e-mail válido e garanto que ele pode ser representado como string também.
+
+class EmailTest extends TestCase
+{
+    public function testEmailNoFormatoInvalidoNaoDevePoderExistir()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        new Email(endereco: 'email inválido');
+    }
+
+public function testEmailDevePoderSerRepresentadoComoString()
+    {
+        $email = new Email(endereco: 'endereco@example.com');
+        $this->assertSame(expected: 'endereco@example.com', (string) $email);
+    }
+} COPIAR CÓDIGO
+[03:22] Para rodar esses testes, como você já fez o curso de PHP Unit aqui na Alura, é só rodar vendor/bin/phpunit e estão lá nossos testes sendo executados. Como eu estou utilizando php storm, tenho uma facilidade que já configurei para conseguir rodar todos os testes direto da minha IDE, e tenho meu resultado. Como minha resolução está um pouco maior para vocês verem o resultado não fica tão fácil de ver, mas tenho o resultado com todos os testes e cada um dos métodos, tudo passando.
+
+[03:52] Mais uma vez, esse não é o foco do treinamento, temos treinamentos de testes aqui, mas só para dar uma passada, para deixar esse desafio também, vamos dar uma olhada no nosso arquivo de configuração, e tudo que estou dizendo é que tenho uma switch de testes só que está dentro da minha pasta testes. E também, só para caso eu queira por algum motivo utilizar meus arquivos de teste e minhas classes de teste em algum outro lugar, com algum outro framework ou alguma coisa assim, criei o autoload-dev.
+
+"autoload-dev":{
+    "psr-4": {
+        "Alura\\Arquitetura\\Testes\\" "testes/"
+    }
+}COPIAR CÓDIGO
+[04:21] Ele não é necessário, só criei também para você conhecer e pesquisar mais sobre o assunto. Agora que já passamos por essa recapitulação, vamos enriquecer nosso domínio. Um aluno tem e-mail, um aluno tem CPF, só que também quero poder ter uma lista de telefones desses alunos. Vamos criar um telefone, uma classe telefone, e pensa comigo. Se um telefone tem o mesmo DDD e o mesmo número de outro telefone, significa que são o mesmo telefone, certo? Ou seja, isso também vai ser um value object.
+
+[05:00] Vamos criar como string um ddd e vamos criar também como string o número desse telefone.
+
+class Telefone
+{
+
+    private string $ddd;
+    private string $numero;
+}COPIAR CÓDIGO
+[05:08] O que vou fazer? No nosso Aluno, vou dizer que posso, primeiro tenho um array, uma lista, o que for, de telefones, e quero poder adicionar telefone.
+
+private string $ddd;
+private_string $numero;
+private Email $email;
+private array $telefones;
+
+public function adicionarTelefone()
+{COPIAR CÓDIGO
+[05:24] Tenho duas opções. Posso receber direto um $telefone ou posso fazer com que ninguém crie telefone fora de um aluno, não crie um telefone avulso. Ou seja, vou receber direto $ddd e um $número, e dentro do meu próprio método vou criar um novo telefone.
+
+public function adicionarTelefone(Telefone $telefone)COPIAR CÓDIGO
+public function adicionarTelefone(string $ddd, string $numero)
+{
+    $this->telefones[] = new Telefone($ddd, $numero);
+}COPIAR CÓDIGO
+[05:58] Essas são duas abordagens, não vou entrar no detalhe de qual é mais vantajosa e por que, mas vou seguir essa abordagem. Se tenho agora um telefone que precisa de $ddd e precisa de $numero, preciso adicionar esse construtor na minha classe de telefone, certo? Vamos criar um construtor.
+
+public function __construct()
+{
+}COPIAR CÓDIGO
+[06:10] Ou utilizando PHP Storm posso fazer "Alt + Insert" e construtor. Seleciono todos e pronto, já tenho meu construtor criado.
+
+public function __construct(string $ddd, string $numero)
+{
+    $this->ddd = $ddd;
+    $this->numero = $numero;
+}COPIAR CÓDIGO
+[06:22] Vou também deixar como desafio para vocês criarem o set ddd e o set número da mesma forma como fizemos no CPF, adicionando filtro de validação, garantindo que um $ddd tenha somente dois números e que o $numero você pode definir um formato se quiser. Eu vou garantir que em $numero só tenham números e que tenha oito ou nove caracteres. Ou seja, um número de telefone precisa ter oito ou nove números.
+
+[06:50] Com isso, vou deixar esse desafio para vocês e no próximo vídeo voltamos para enriquecer ainda mais nosso domínio.
+
+@@03
+VO ou Entidade
+
+Já entendemos bem a diferença entre Value Objects e Entidades na aula anterior.
+A classe Telefone é um Value Object ou uma Entidade?
+
+Entidade, já que não podem existir dois telefones com o mesmo DDD e número
+ 
+Alternativa correta
+Value Object, já que dois telefones com DDD e número iguais são considerados o mesmo telefone
+ 
+Alternativa correta! Se a igualdade entre dois objetos de uma classe é verificada através da comparação de todos os seus valores, se trata de um Value Object.
+Alternativa correta
+Value Object, já que não podemos criar dois objetos do tipo Telefone com mesmo DDD e número
+
+@@04
+Classe de indicação
+
+[00:00] Bem-vindos de volta. Só para mostrar para vocês, no telefone eu fiz aquela validação de novo. Utilizei uma forma diferente para fazer aquela validação com expressão regular. Agora estou utilizando a função preg_match, ou seja, verificar se uma expressão regular bate com o que estou esperando ou não. Dá uma pesquisada melhor sobre essa função.
+[00:25] Obviamente, como tenho um value object que faz sentido ser representado como string, criei o método __toString.
+
+class Telefone
+{
+    private string $ddd;
+    private string $numero;
+
+    public function __construct(string $dd, string $numero)
+    {
+        $this->setDdd($ddd);
+        $this->setNumero($numero);
+    }
+    private function serDdd(string $ddd): void
+    {
+        if(preg_match(pattern'/\d{2}/', $ddd) !== 1) {
+            throw new \InvalidArgumentExcption(message: 'DDD inválido');
+        }
+        $this->ddd = $ddd
+    }
+    private function setNumero(string $numero): void
+    {
+        if(preg_match(pattern: '/\d{8,9}/', $numero) !== 1) {
+            throw new \InvalidArgumentException(message: 'Número de telefone inválido');
+        }
+    }
+
+    public function __toString(): string
+    {
+        return "({$this->ddd}) {$this->numero}";
+    }
+}COPIAR CÓDIGO
+[00:35] E, claro, também criei testes para isso. Estou garantindo que consigo representar meu telefone como uma string. Inclusive já coloquei o $ddd entre parênteses para ficar mais interessante, e também estou verificando os casos de erro. Se um ddd inválido lança uma exceção e se um número inválido lança uma exceção.
+
+public function testTelefoneDevePoderSerRepresentadoComoString()
+{
+    $telefone = new Telefone(ddd: '24', numero: '22222222');
+    $this->assertSame(expected: '(24)22222222', (string) $telefone);
+}
+
+public function testTelefoneComDddInvalidoNaoDeveExistir()
+{
+    $this->expectException(\InvalidArgumentException::class);
+    $this->expectDeprecationMessage('DDD inválido');
+    new Telefone(ddd: 'ddd', numero: '22222222');
+}
+
+public function testTelefoneComNumeroInvalidoNaoDeveExistir()
+{
+    $this->expectException(\InvalidArgumentsException::class);
+    $this->expectDeprecationMessage('Número de telefone inválido');
+    new Telefone(ddd: '24', numero: 'numero');
+}COPIAR CÓDIGO
+[01:00] Os testes já estão passando, tudo certo, vamos fechar isso e enriquecer ainda mais nosso domínio. Já tenho aqui bastante bem definido nosso aluno, o que um aluno pode ter. Ainda não consigo utilizar esse aluno, certo? Porque não consigo criar um aluno com CPF, nome, e-mail, etc, mas ele já está relativamente bem definido.
+
+class Aluno
+{
+
+    private Cpf $cpf;
+    private string $nome;
+    private Email $email;
+    private array $telefones;
+
+    public function adicionarTelefone(string $ddd, string $numero)
+    {
+        $this->telefone[]= new Telefone($ddd, $numero)
+    }
+}COPIAR CÓDIGO
+[01:15] Agora vamos começar a definir um domínio de outra parte da nossa aplicação onde um aluno pode indicar outro aluno. Se um aluno pode indicar outro temos o conceito de uma indicação que quero poder ter, armazenar, poder puxar relatórios no futuro, então vamos começar a modelar essa indicação.
+
+[01:36] Uma indicação, vamos criar essa classe Indicacao, e já quero deixar uma pulga atrás da orelha de você que está assistindo, que tenho muitas classes, tudo direto na pasta raiz, quando nosso projeto crescer isso vai ficar difícil de manter. Conforme vamos evoluindo, já começa a pensar em como poderíamos separar isso. Vamos fazer juntos, mas já quero provocar esse pensamento em você.
+
+class Indicacao
+{
+
+} COPIAR CÓDIGO
+[02:04] O que uma indicação precisa ter? Uma indicação tem basicamente um aluno indicante, ou indicador, a palavra que você preferir, são sinônimos, e um aluno indicado. Então vou armazenar essas duas informações. Vou ter um aluno indicante, e o aluno que foi indicado.
+
+private Aluno $indicante;
+private Aluno $indicado;COPIAR CÓDIGO
+[02:28] Vou criar com "Alt + Insert" um construtor que inicialize essas duas propriedades. Com isso, consigo criar uma indicação de um aluno para outro aluno, e perfeito. Com isso posso criar os métodos de acesso para buscar o aluno indicante, o aluno indicado, se você quiser, mas por enquanto já começamos a modelar nossa aplicação.
+
+public function __constuct(Aluno $indicante, Aluno $indicado)
+{
+    $this->indicante = $indicante;
+    $this->indicado = $indicado;
+}COPIAR CÓDIGO
+[02:52] Qual era o ponto deste vídeo? Vamos começar a enriquecer nosso domínio, e se estamos enriquecendo nosso domínio, ''vários problemas vão começar a surgir. O primeiro problema que já deixei de cara para você é que começamos a ter muitos arquivos e muitas classes direto na mesma pasta. Isso com o tempo fica impossível de manter. Começa a pensar nisso.
+
+[03:17] Só que outro ponto é que ainda não conseguimos criar um aluno. Vamos pensar numa forma de conseguir criar um aluno. Vou ter um constuct(), que recebe obviamente um CPF, todo aluno tem que ter CPF. Todo aluno tem que ter também um nome, e todo aluno tem que ter um e-mail. Vou inicializar essas propriedades.
+
+class Aluno
+{
+
+    private Cpf $cpf;
+    private string $nome;
+    private Email $email;
+    private array $telefones;
+
+    public function __construct(Cpf $cpf, string $nome, Email $email)
+    {
+        $this->cpf = $cpf;
+        $this->nome = $nome;
+        $this->email = $email;
+    }COPIAR CÓDIGO
+[03:42] Pensa caso você vá criar um teste, por exemplo um teste de unidade agora, ou você vai utilizar esse aluno em algum lugar. Quando você for criar um aluno, você precisa fazer um novo CPF, e passa os dados de CPF, depois passo nome, depois passo novo e-mail e passo os dados do e-mail, e depois de criar esse aluno ainda preciso adicionar telefone.
+
+new Aluno (new Cpf(numero: '123'), 'Vinícius', new Email(endereco: 'email))->adicionarTelefone();COPIAR CÓDIGO
+[04:14] A criação de um objeto do tipo aluno está complexa. Olha como esse construtor pode ficar ilegível rapidinho. O que quero propor? Quero propor que criemos uma classe específica para gerar novos alunos. Específica para criar instâncias de aluno. Então vamos conversar, bater um papo rápido sobre isso no próximo vídeo.
+
+@@05
+Fábricas
+
+[00:00] Bem-vindos de volta. Quero voltar bem rápido na nossa classe indicação para mostrar algo que é muito comum no dia a dia. Eu recebi uma solicitação para criar a indicação, então pensei logo comigo mesmo, tenho o aluno que é o indicante e tenho o aluno que é o indicado, perfeito. Só que não fui confirmar com a minha gerente o que preciso ter sobre uma indicação. E agora que essa feature já está em produção, rodando, gerando relatórios, estamos tendo vários problemas, porque como não fui perguntar, como não conversei com minha equipe de negócios, supus que era só isso que era necessário.
+class Indicacao
+{
+    private Aluno $indicante;
+    private Aluno $indicado;
+    private \DateTimeImmutable $data;
+
+    public function __construct(Aluno $indicante, Aluno $indicado)
+    {
+        $this->indicante = $indicante;
+        $this->indicado = $indicdo;
+    }
+}
+COPIAR CÓDIGO
+[00:42] Só que acontece que também era necessário armazenar a data. A data em que aconteceu essa indicação. Precisamos sempre tomar cuidado e conversar sempre com a equipe de negócios sobre o que é necessário ter no nosso domínio, o que é necessário ter nas nossas abstrações.
+
+[01:03] Então, se toda indicação precisa de uma data, sempre que eu criar uma indicação vou dizer que a data é igual à data atual. E perfeito. Corrigido esse bug. Por que deixei isso para outro vídeo? Para mostrar que problemas acontecem, acabamos nos esquecendo de determinadas coisas. E repare que para a indicação não criei nenhum teste. Talvez se eu tivesse testes, como deveria ter, eu já teria pego esse problema antes. Fica um detalhe muito importante, que é converse com a equipe de negócios e a partir do feedback dela crie seus testes, e a partir dos testes você vai saber como criar suas classes.
+
+[01:45] Agora, voltando naquele assunto sobre a complexidade de criar um aluno, vamos criar uma classe específica para criar alunos. E se você já fez os treinamentos de padrões de projeto criacionais aqui da Alura, se você não fez ainda recomendo fortemente que faça, mas caso não tenha feito ainda vou passar bem rapidamente o conceito.
+
+[02:08] Existem padrões específicos para criar objetos, seja criar objetos complexos, famílias de objetos, enfim. Um desses padrões permite que criemos objetos bastante complexos, e vamos seguir mais ou menos a estrutura dele.
+
+[02:25] Só que antes de falar qual é esse padrão ou qualquer coisa, vou criar uma classe. Como essa classe cria, gera, fabrica alunos, vou chamar ela de FabricaAlunos, mas não se atente ao nome porque tem uma pegadinha bem grande neste nome.
+
+[02:40] Quero criar aluno, então sempre que eu criar uma FabricaAluno, inclusive vou colocar no singular, porque cada fábrica vai criar um aluno só. Essa FabricaAluno vai fazer o quê? Quando eu criar esse objeto, quando criar essa fábrica, vou criar um public static function, um método estático, chamado comCpfEmailENome.
+
+[03:16] Por que estou passando isso? Todo aluno precisa ter esses parâmetros, então não faz sentido para mim, Vinicius, criar métodos separados. Existe a possibilidade de criar um método com CPF, outro com nome, outro com e-mail. Existe essa possibilidade. Mas eu não quero, não vou fazer dessa forma.
+
+[03:40] Eu vou receber uma string do numeroCpf, uma string do e-mail do aluno e uma string do nome do aluno. Só. Vou receber strings. E vou criar esse aluno, que vai ser uma instância da classe Aluno, com aquela estrutura complexa, novo CPF, que vai receber esse número, nome do aluno, novo e-mail com o e-mail do aluno, com o endereço de e-mail.
+
+[04:15] Repare que o meu aluno tem uma ordem nos seus parâmetros. Primeiro passo CPF, depois nome, depois e-mail. Só que essa ordem não importa tanto. Agora, em comCpfEmailENome tenho outra ordem. Primeiro CPF, depois e-mail, depois nome. E você provavelmente está pensando em colocar na mesma ordem, vai ficar mais fácil, mais legível.
+
+[04:38] Realmente o ideal é que esteja na mesma ordem, mas estou deixando numa ordem diferente de propósito para vocês entenderem que o que importa é ser legível. Quando eu chamar esse método comCpfEmailENome, eu sei só de ler o nome do método qual a ordem dos parâmetros. Agora, só pelo construtor da classe aluno não sei qual a ordem dos parâmetros.
+
+[05:02] Então, quando for chamar uma FabricaAluno, que vou fazer dessa forma, comCpfEmailENome, eu sei que o primeiro parâmetro é o CPF, o segundo é o e-mail, o terceiro é o nome. Só pelo nome do método consigo saber a ordem dos parâmetros.
+
+[05:20] Com essa complexidade a mais que adicionei na explicação, vamos continuar nossa criação da classe. Vou ter um aluno. Quando chamar esse método comCpfEmailENome, esse é um método estático. Não faz sentido ter um atributo da classe em um método estático. Quando chamar esse método, vou criar um novo aluno e esse novo aluno já vai ter as propriedades CPF, nome e e-mail. E também vou ter agora um método adicionaTelefone, que vai receber um ddd e um número.
+
+[06:08] Nesse aluno vou chamar o adicionaTelefone, que passa um ddd e passa um número. Só que agora entra uma coisa bastante interessante aqui, que eu particularmente gosto bastante. Vou retornar a cada chamada desses métodos uma instância da própria classe, da própria fábrica, porque o que isso vai causar? Inclusive deixa eu adicionar o tipo de retorno para informar que esses métodos sempre vão retornar uma instância da própria classe.
+
+[06:37] Com isso, o que posso fazer? Vou criar uma fábrica new FabricaAluno. Com essa fábrica, posso chamar o método comCpfEmailENome, e aí passo os parâmetros e já chamo direto adicionaTelefone. Se eu quiser adicionar mais de um posso chamar direto de novo esse método.
+
+[07:02] Eu estou fabricando um aluno passo a passo, e no final posso chamar o método aluno, e esse método aluno vai ser o que me devolve essa instância já construída. O public function aluno vai me devolver um aluno, que simplesmente retorna essa instância de aluno.
+
+[07:25] Com isso tenho uma classe responsável por criar um aluno de forma um pouco mais legível e simplificada. Essa é a melhor forma de criar uma classe que vai criar alunos? Longe disso. Tem como melhorar bastante e por isso sugiro que você faça o treinamento de padrões criacionais, porque essa classe bem de longe, bem mais ou menos está implementando um padrão chamado builder. E por que bem mais ou menos?
+
+[07:55] Primeiro porque o padrão builder tem uma estrutura um pouco mais complexa, pode criar mais de um tipo de classe. Segundo essa nossa classe está modelada de uma forma não tão robusta, posso acabar chamando esse método adicionaTelefone antes do comCpfEmailENome, e nosso código vai dar erro. Tem problemas nessa nossa fábrica, mas o ponto é que ela atinge seu objetivo, mal ou bem.
+
+[08:22] E se você já fez o treinamento de padrões criacionais você provavelmente está se perguntando, mas você utilizou o nome fábrica, ou seja, em inglês seria factory, e existe um padrão de projeto chamado factory method. Tem alguma relação? Não, na verdade não existe uma relação direta entre o padrão factory method e essa fábrica que estou criando aqui.
+
+[08:42] Só que em outros estudos, outras literaturas, em outros livros, fábrica, ou factory, é um nome utilizado para qualquer classe que crie algum objeto. Ou que crie qualquer outra coisa, certo? Então estou utilizando esse nome confuso de propósito para que você entenda com bastante clareza que nem sempre que temos o nome factory ou o nome fábrica é uma aplicação do padrão de projetos factory method. Inclusive, vou deixar um link para você ler sobre uma comparação de vários padrões de criação que em vários lugares são chamados de factory, ou fábrica em português. Só que eles são padrões específicos para outras coisas, com outros propósitos.
+
+[09:25] Um deles é o builder, como estamos criando aqui, e existe o factory method, como já citei, e vários outros padrões. Então, sem me alongar muito, o que é uma fábrica no contexto que estou criando aqui? É um objeto, uma classe que vai gerar objetos, que cria objetos, e só isso. Como vou fazer não importa. Como isso vai ser implementado não importa. Eu implementei essa fábrica de um jeito. Deixo um desafio para você, depois que você terminar o treinamento de padrões criacionais, de implementar essa fábrica de forma um pouco mais robusta, de uma forma com menos sucessão a erro.
+
+[10:03] Agora que já entendemos melhor esse conceito de fábrica e complicamos bastante nosso domínio, podemos avançar na criação do nosso projeto e na modelagem da arquitetura.
+
+@@06
+Para saber mais: Fábricas
+
+É importante frisar que o que aqui é chamado de fábrica não é uma aplicação do Factory Method.
+As diferenças entre os padrões criacionais foram explicadas no curso Design Patterns em PHP: Padrões criacionais.
+
+O que implementamos neste caso é semelhante ao padrão Builder.
+
+https://cursos.alura.com.br/course/php-design-pattern-criacional
+
+@@07
+Named constructors
+
+[00:00] Bem-vindos de volta. Vamos recapitular bem rápido o que falamos no último vídeo, porque foi um conteúdo um pouco mais longo. Eu criei uma classe específica para gerar novos alunos. E por que fiz isso? Porque o construtor de aluno está complexo. Preciso criar um objeto CPF, um objeto e-mail, depois passar um CPF, um nome e um e-mail para o nosso construtor de aluno. A criação dele fica longa, fica complicada.
+[00:30] Então, criei uma classe que recebe só strings e a partir delas instância os objetos necessários. Essa classe nada mais é do que um facilitador para o que o aluno já faz. É bastante comum encontrar códigos assim. Só que vou te passar outra possibilidade, vou te passar uma alternativa para implementar isso.
+
+[00:50] Primeiro, esse método adiciona telefone não está fazendo nada, só está chamando o adicionar telefone do nosso aluno e retornando uma instância dessa classe para poder chamar de forma encadeada esse método. Então podemos muito bem fazer a mesma coisa aqui.
+
+[01:06] Se eu retornar this, posso a partir de um aluno chamar o adicionarTelefone, e depois adicionar outro telefone, e depois adicionar outro telefone, porque estou sempre retornando a própria instância, então posso ir adicionando novos telefones.
+
+[01:28] O primeiro ponto já foi, entre aspas corrigido. Agora, esse outro ponto de ter um nome mais claro para construir, para criar um aluno. Posso fazer isso diretamente na classe aluno através do que é chamado de named constructors ou construtores nomeados.
+
+[01:46] Como isso é feito? De forma muito simples. Vou criar um método estático chamado comCpfNomeEEmail. Vinicius, a ordem está diferente da FabricaAlunos, realmente está. Mas pelo nome você consegue saber a ordem dos parâmetros, não consegue? Então aqui vou passar uma string, que é o CPF, uma string que é o nome, e uma string que é o e-mail.
+
+[02:12] O que esse método vai retornar? Uma instância da própria classe, uma instância de aluno. Tudo que ele vai fazer é criar um novo aluno passando um objeto CPF que foi criado a partir do número de CPF que passei, passando o nome e passando uma nova instância de e-mail.
+
+[02:35] Olha só como simplificamos. Todo aquele trabalho da fábrica que criei foi simplificado em um método. Agora posso ao invés de fazer aluno que recebe um novo CPF e passo o CPF, que recebe um novo nome, que recebe um novo e-mail, está vendo como sempre me confundo, não lembro a ordem, instancio a classe errada? Ao invés de fazer isso posso fazer aluno comCpfNomeEEmail. CPF o que for, nome o que for e e-mail o que for.
+
+[03:10] Isso já vai criar as classes necessárias lá dentro e me devolver uma instância de aluno. Eu facilitei a construção. Tenho um nome bem mais legível para criação do meu aluno, e não preciso de uma classe a mais só para isso. Essa fábrica de aluno se torna desnecessária.
+
+[03:32] E aí você pode se perguntar se o conceito de fábrica nesse sentido, para criar objetos complexos, é inútil? Nunca vou usar? Sempre vou utilizar named constructors? Nem sempre. Nem sempre o named constructor vai resolver, porque posso ter realmente uma classe bem complexa, com várias opções para serem passadas, e aí posso quebrar em etapas utilizando o padrão builder, por exemplo, como já citei na última aula e como foi ensinado no treinamento de padrões criacionais, ou posso utilizar algum outro padrão, e mais uma vez lá no treinamento de padrões criacionais vemos quando cada um faz sentido.
+
+[04:10] Mas nesse nosso caso aprendemos um novo padrão chamado named constructor que facilita bastante nosso trabalho. Então, mais uma vez, só para ficar bem claro, eu consigo criar um aluno direto desse método estático e sair adicionando telefone. Olha como fica mais fácil. Para criar um aluno com dois telefones essa linha vai ficar gigante, óbvio, o ideal é quebrar, mas consigo fazer com uma instrução só.
+
+[04:41] Dessa forma já simplificamos nossa estrutura, simplificamos a criação de alunos, posso inclusive remover essa classe FabricaAluno, ela não se faz necessária mais, e agora estamos de verdade prontos para começar a organizar nosso código, que ainda está muito bagunçado, está tudo numa pasta só, e acho que vale a pena começar a conversar sobre isso.
+
+@@08
+Vantagem dos named constructors
+
+Vimos neste curso a possibilidade de criar métodos estáticos que tornam mais amigáveis a criação de um objeto.
+Qual a vantagem de se utilizar named constructors?
+
+Aumentar a performance, já que o método é estático
+ 
+Alternativa correta
+Poder definir exceções específicas de problemas na criação do objeto
+ 
+Alternativa correta
+Tornar a criação dos objetos mais legível
+ 
+Alternativa correta! Com named constructors, nós podemos saber a ordem dos parâmetros necessários diretamente no nome do método. Além disso, o nome deixa mais explícito quais dados estamos passando.
+Desafio: Crie um named constructor para alguma outra classe já implementada até aqui.
+
+@@09
+Faça como eu fiz
+
+Chegou a hora de você seguir todos os passos realizados por mim durante esta aula. Caso já tenha feito, excelente. Se ainda não, é importante que você execute o que foi visto nos vídeos para poder continuar com a próxima aula.
+
+Continue com os seus estudos, e se houver dúvidas, não hesite em recorrer ao nosso fórum!
+
+@@10
+O que aprendemos?
+
+Nesta aula, aprendemos:
+Sobre o relacionamento entre entidades e Value Objects
+O conceito de fábrica no mundo do estudo de design de código
+Sobre named constructors e suas vantagens na legibilidade
