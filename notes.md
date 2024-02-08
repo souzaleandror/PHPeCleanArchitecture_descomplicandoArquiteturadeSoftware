@@ -657,3 +657,255 @@ Nesta aula, aprendemos:
 Sobre o relacionamento entre entidades e Value Objects
 O conceito de fábrica no mundo do estudo de design de código
 Sobre named constructors e suas vantagens na legibilidade
+
+#### 08/02/2024
+
+@03-Camadas
+
+@@01
+Projeto da aula anterior
+
+Caso queira, você pode baixar aqui o projeto do curso no ponto em que paramos na aula anterior.
+
+https://caelum-online-public.s3.amazonaws.com/1774-php-arquitetura-introducao/02/php-arquitetura-projeto-aula-2-completo.zip
+
+@@02
+Módulos
+
+[00:00] Bem-vindos de volta a mais um capítulo desse treinamento de arquitetura utilizando php. Está na hora de começarmos a conversar um pouco mais sobre arquitetura em si, porque até agora vimos coisas muito importantes, vimos sobre entidades, onde precisamos de algum identificador para separar os valores, para separar cada um dos objetos não se baseando só nos valores, isso é o conceito de entidade.
+[00:30] Vimos o conceito de objetos de valor, ou value objects, onde o fato de ter os atributos iguais implica que esses são objetos realmente iguais. Vimos sobre fábricas, que auxiliam na criação de novos objetos. Vimos sobre named constructors, que às vezes podem facilitar o trabalho que uma fábrica faria. Já vimos bastante coisa, vimos o que pode ser chamado de blocos de construção, e se você reparar, tudo que fizemos até aqui está relacionado ao domínio da aplicação. Ou seja, está relacionado a um negócio.
+
+[01:10] Ainda não tenho nenhum SQL escrito, nenhum controller, nada relacionado a infraestrutura, a web, nada disso. Estamos começando do núcleo da aplicação. O núcleo da nossa aplicação precisa estar organizado. Então outro bloco de construção muito conhecido, outra ferramenta muito conhecida é chamada de módulo.
+
+[01:30] O que isso quer dizer? Quando tenho módulos, seja lá como eles sejam implementados por cada linguagem, vou conseguir separar partes da nossa aplicação. E quando digo módulo é tão simples quanto tudo isso aqui, um aluno está relacionado ao telefone, então eles vão estar no mesmo módulo. Uma indicação vai estar relacionada com alguma outra coisa, pontos dessa indicação. Então isso vai estar em outro módulo separado.
+
+[02:03] Assim começamos a dividir os módulos da nossa aplicação. Vamos pensar em dois módulos que temos até agora. Temos o módulo de tudo que é relacionado ao aluno, então vou criar uma pasta. E temos o módulo de tudo que é relacionado a indicação. Por enquanto não temos nada, só a própria classe indicação, mas tudo bem.
+
+[02:23] Pensa comigo. No nosso sistema alguém, alguma outra classe além de aluno tem e-mail? Não tem. Alguma outra classe além de aluno tem CPF? Não. Alguma outra classe além de aluno tem telefone? Também não. Então tudo isso está relacionado ao aluno.
+
+[02:45] Agora pensa. Isso é só no nosso sistema. Pode ter outro sistema onde além de aluno temos instrutor, e o instrutor também tem CPF e e-mail, então isso não iria para a pasta de aluno. Vamos pensar das duas formas. Primeiro, supondo que temos também uma classe de instrutor. Então o aluno e telefone viriam para dentro dessa pasta aluno. Mandei para lá.
+
+[03:14] A classe indicação vem para o módulo de indicação. E suponhamos que tenhamos a classe instrutor, ela iria para o módulo instrutor. Agora, CPF e e-mail são classes utilizadas por mais de um módulo, certo? O módulo aluno e o módulo instrutor utilizariam, então elas ficariam direto, não precisaria colocar em nenhuma pasta específica.
+
+[03:41] Ou seja, posso ter separação de módulos e posso ter classes que são utilizadas por mais de um módulo, é comum, e inclusive também é comum ter classes que utilizam classes de outros módulos. A classe indicação, que está no módulo de indicação, utiliza classe aluno, que está no módulo de aluno. Isso acontece, é comum, e da forma como estamos fazendo aqui não tem problema nenhum, porque aluno e indicação são módulos diferentes, mas da mesma aplicação. Não são aplicações diferentes, logo podem se acessar tranquilamente.
+
+[04:20] E para separar esses módulos, e quando digo módulos, de novo, é um conceito muito mais simples do que caso você tenha vindo de Java, por exemplo. É um conceito muito mais simples do que o Java implementa de módulos. É semelhante ao que o Csharp chama de name space, que o Java chama de packages, ou pacotes.
+
+[04:40] Aqui no mundo php implementamos através de name space também. Tenho meu módulo de indicação. No nosso módulo de aluno vou utilizar um name space de aluno. Em telefone o name space vai ser aluno. Com isso começamos a separar nossa aplicação pelos módulos.
+
+[05:10] E se agora o CPF e o e-mail estão em outro módulo, lá na raiz, e estou utilizando eles aqui, preciso obviamente importar. Nesse caso, você poderia ter passado CPF e e-mail para a pasta aluno. Poderia, só estou deixando na raiz para provocar essa linha de pensamento em você. Para você começar a se questionar. Lembre que este é um curso um pouco mais avançado, então várias das coisas que vou fazer são para te provocar, te fazer pensar, raciocinar, e não simplesmente copiar o que estou fazendo.
+
+[05:45] Com isso começamos a separar nossa aplicação em pequenas partes. Uma parte que é comum para todo mundo, uma parte que está relacionada à indicação, uma parte relacionada especificamente ao que um aluno tem. Começamos a separar melhor. E falando sobre separação, podemos começar a entrar no conceito de padrões de arquitetura. Vamos falar sobre isso no próximo vídeo.
+
+@@03
+Módulos e namespaces
+
+Desde os cursos de orientação a objetos, nós já vimos como utilizar namespaces, mas agora eles estão sendo ainda mais úteis.
+Que vantagem ganhamos ao organizar nossa aplicação em módulos?
+
+Utilizando namespaces, conseguimos criar mais classes, devido ao limite de classes por namespace
+ 
+Alternativa correta
+A performance do projeto melhora, por termos menos classes em cada módulo
+ 
+Alternativa correta
+Nossa arquitetura fica mais clara e, em um projeto grande, encontramos as classes mais facilmente
+ 
+Alternativa correta! Módulos são uma ferramenta essencial para toda arquitetura. No final do treinamento, teremos uma estrutura mais robusta de módulos.
+
+@@04
+Para saber mais: Screaming Arch
+
+Existe um conceito chamado Screaming Architecture. Em uma tradução livre, Arquitetura Gritante.
+Seguindo este princípio, fica fácil bater o olho na arquitetura de um projeto e saber do que se trata, facilitando até a entrada de novas pessoas no projeto: https://blog.cleancoder.com/uncle-bob/2011/09/30/Screaming-Architecture.html.
+
+https://blog.cleancoder.com/uncle-bob/2011/09/30/Screaming-Architecture.html
+
+@@05
+Padrões de arquitetura
+
+[00:00] Bem-vindos de volta. Vamos falar sobre alguns padrões de arquitetura bastante famosos e baseado em ideias de vários deles, vamos chegar em um padrão que iremos adotar.
+[00:16] O primeiro é de um padrão arquitetural chamado arquitetura hexagonal. E pelo desenho você já deve saber o motivo desse padrão.
+
+[00:28] A ideia desse padrão é que na parte de fora desse hexágono nós temos a Web, Banco de dados, testes, ou seja, uma camada de infraestrutura.
+
+[00:40] E a partir dessa camada de fora da infraestrutura, nós recebemos informações como requisições web, tentativas de teste, requisições na linha de comando.
+
+[00:56] E essas requisições são feitas por meio de Adapters, ou seja, adaptadores. Algo que entende o que o mundo de fora está falando com a gente e passa através de portas, ou seja, de classes um pouco mais perto do nosso domínio.
+
+[01:12] Pegando essas informações de fora e passar um pouco mais para dentro, para poder organizar. Quando eu receber uma requisição da URL eu vou chamar o método Adapters que vai executar a ação Ports.
+
+[01:26] Essa ação conhece o domínio, as entidades e vai fazer o que precisa fazer. Além disso, quando chegar no ponto Business Domain do domínio, é muito comum precisarmos acessar o banco de dados.
+
+[01:39] Só que existe uma regra de dependência em algumas arquiteturas e padrões que diz que quando temos esse tipo de arquitetura em camadas, como essa que temos a camada de fora, a camada começando o hexágono e a camada mais interna, que é o domínio, a gente só pode ter dependência de fora para dentro.
+
+[02:02] Ou seja, nossa camada de infraestrutura pode até conhecer nossa aplicação, mas nossa aplicação não pode conhecer a infraestrutura.
+
+[02:12] A nossa camada de portas, essa lógica que vai acontecer na nossa aplicação, pode depender do nosso domínio. Só que nosso domínio não pode conhecer o que essa porta da web está falando.
+
+[02:25] Não pode conhecer a infraestrutura da web. E por quê? Imagina se meu aluno conhecesse SQL, soubesse como se representa na web, se ele soubesse como receber uma requisição.
+
+[02:39] Além de ter várias responsabilidades, eu só conseguiria utilizar esse aluno na web, não conseguiria fazer testes com ele, seria muito mais difícil.
+
+[02:47] Não conseguiria utilizar ele na linha de comando, utilizar com formulário ou API, utilizaria somente de uma forma. Então eu me restrinjo muito.
+
+[02:58] Por isso, a gente separa o domínio da aplicação. Um outro modelo, um pouco mais simples, é o modelo de Clean Architecture, ou Arquitetura limpa.
+
+[03:09] Nele nós temos entidades, que criamos até agora, mas não só entidades, também value objects, factorys, o que for dados que representam nosso domínio.
+
+[03:23] E nessa parte central, do domínio que criamos até agora, temos as regras de negócio do nosso modelo. Um pouco para fora do padrão de arquitetura temos os casos de uso, ou seja, o que nossa aplicação faz e pode realizar de tarefas.
+
+[03:46] Por exemplo, matricular um aluno, indicar aluno, ou seja, regras que a nossa aplicação executa. Isso quer dizer que nossos casos de uso precisam conhecer as entidades.
+
+[03:58] Porque, um case de uso matricular aluno precisa, obviamente, saber conhecer a classe aluno para poder criá-la e chamar os métodos corretos.
+
+[04:08] Esses use cases podem ser chamados através de linha de comando, da web, então, na camada mais de fora do padrão temos controlles, alguma forma de apresentar esses casos de uso.
+
+[04:22] Nós temos camadas de tradução. Então basicamente com isso já começaríamos falar um pouco com a web, o controller do nosso framework fica na terceira camada de dentro para fora.
+
+[04:33] E na camada mais externa, é como se fosse a parte de fora do hexágono, ou seja, é o banco de dados, a web, a interface com o usuário, um dispositivo que vai conversar com a aplicação, tudo que foge do nosso controle.
+
+[04:48] E uma outra forma de representarmos isso, repare que existem muitas semelhanças entre o modelo Arquitetura Hexagonal e o Arquitetura limpa, mas com nomes diferentes.
+
+[04:59] Na Arquitetura Limpa temos Use Cases, já na Arquitetura Hexagonal temos Ports. No primeiro temos Controllers, no segundo Adapters. Então, são conceitos muito semelhantes com nomes diferentes.
+
+[05:15] Um outro modelo, que foi apresentado no livro Domain-Driven Design, é um pouco diferente e foi modificado por esses modelos por alguns motivos.
+
+[05:29] Ele divide as camadas entre a interface com o usuário e essa interface, seja na web, API ou linha de comando, vai conversar com a aplicação.
+
+[05:39] A aplicação conversa com o domínio e o domínio pode acabar conhecendo alguns resultados de infraestrutura, ou seja, eu posso ter algumas classes que conhecem SQL, outras que saibam acessar o sistema de arquivos.
+
+[05:56] Então, existem vantagens e desvantagens em cada caso. Eu, Vinícius, sigo mais os modelos de modelo Arquitetura Hexagonal e o Arquitetura Limpa porque acredito que o meu domínio não deva conhecer a infraestrutura.
+
+[06:09] O meu domínio não deva saber SQL, acessar arquivo, esse tipo de coisa. Agora, também existem vantagens nessa arquitetura. Com essa forma do livro eu posso simplificar algumas coisas, por exemplo, um aluno, eu posso ter um repositório de aluno e o aluno, tudo direto no meu domínio.
+
+[06:65] Então existem facilidades com essa abordagem, mas eu, Vinícius, prefiro seguir a abordagem sugerida nos modelos Arquitetura Hexagonal e o Arquitetura Limpa.
+
+[06:48] Detalhe bastante importante, a Arquitetura Hexagonal também pode ser conhecida como Ports & Adapters, ou Portas e Adaptadores, justamente pelos conceitos que ela utiliza.
+
+[07:00] Agora, pegando um pouco desses conceitos, os detalhes de Ports e Adapters, Use Cases e Controllers, pegando a separação de domínio e aplicação de infraestrutura do Domain-Driven Design, o que eu tendo a fazer?.
+
+[07:15] Aproveitar o melhor de todos e chegar em uma arquitetura nossa, específica para nossa aplicação. E para a nossa vou seguir um modelo parecido com os avaliados anteriormente.
+
+[07:29] Eu estou criando, por enquanto, o nosso domínio, as nossas entidades, value objects, factorys, vamos falar mais para frente, mas eu posso ter serviços também.
+
+[07h40] E para acessar o meu domínio eu obviamente preciso de uma aplicação, que vai conter o fluxo das regras de negócio.
+
+[07:48] Qual classe chamar primeiro, o que fazer, qual método chamar, mas ela não vai ter regras de negócio em si, como, por exemplo, temos que um CPF precisa estar válido, que um aluno pode ter telefone, eu consigo adicionar telefones a ele, isso é uma regra de negócios.
+
+[08:06] Agora, na minha aplicação eu só vou chamar esses métodos, ou seja, vou ter a organização do fluxo da minha aplicação. E na infraestrutura eu tenho tudo o que apoia a minha aplicação, que é conversar com o banco de dados, realizar logs, acessar arquivos.
+
+[08:31] Então, fora do meu padrão de arquitetura, vou definir tudo o que for necessário de conversa com o mundo exterior. Inclusive, na minha arquitetura um controller está na parte de fora, porque um controller conversa com a web, então ele está na camada de infraestrutura.
+
+[08:47] Caso esteja utilizando um padrão, um framework, por exemplo, e eu esteja conversando com a web. E quando voltamos a falar sobre a dependência, que é identificada por uma seta na Arquitetura Limpa e na Arquitetura Hexagonal, nesse nosso modelo o que vamos seguir, a infraestrutura, embora não seja comum, pode conhecer alguns detalhes da aplicação.
+
+[09:11] O domínio não pode conhecer nada de fora. A aplicação conhece o domínio, a infraestrutura conhece a aplicação e a web vai conversar com a infraestrutura, ou seja,a linha de dependência vai vir de fora para dentro.
+
+[09:39] Então a web fala com a minha infraestrutura, a infraestrutura pode conhecer ou não alguns detalhes da aplicação e a aplicação conversa com o domínio.
+
+[09:48] Mas, quando vi esse desenho pela primeira vez me perguntei, se eu estou na aplicação, acesso o domínio, por exemplo, aluno, criei um aluno, como vou matricular um aluno, como vou salvá-lo no banco de dados se meu domínio não conhece a infraestrutura?
+
+[10:06] Então, como consigo aplicar na vida real esses detalhes, como se aproxime desse modelo. Então no próximo vídeo vamos começar, bem devagar, a implementar esse modelo.
+
+[10:20] Fazer com que nosso domínio não precise saber de detalhes de infraestrutura para que ela funcione. No próximo vídeo nós começamos colocar a mão na massa.
+
+@@06
+Regra de dependência
+
+Vimos que em vários padrões arquiteturais existem divisões em camadas. Esses modelos foram evoluindo, até que essas camadas foram divididas em mais interiores e mais exteriores, o que geraram os desenhos vistos no último vídeo.
+Qual a ordem em que as dependências podem acontecer nas camadas de um projeto?
+
+Tanto para dentro quanto para fora
+ 
+Alternativa correta
+Sempre para dentro (camadas de fora podem depender das de dentro)
+ 
+Alternativa correta! Assim, o nosso domínio (camada mais interna) é independente de qualquer detalhe exterior. Nossa aplicação depende apenas do nosso domínio, e não conhece detalhes de infraestrutura. A camada de infraestrutura apoia as camadas mais interiores.
+Alternativa correta
+Sempre para fora (camadas de dentro podem depender das de fora)
+
+@@07
+Para saber mais: Domínio
+
+Ao desenvolver um sistema complexo, o domínio deve ser o foco. Por isso, ele é a camada central dos padrões de arquitetura.
+Web, frameworks e mecanismos de persistência (como bancos de dados) são meros detalhes. São ferramentas para executar suas regras de negócio.
+
+Executar a sua aplicação pela CLI deve ser tão fácil quanto através de uma API. O mesmo vale para uma interface Web.
+
+O conceito de modelarmos a nossa aplicação pensando primeiramente no domínio é chamado de Domain Driven Design, ou design orientado a domínio.
+
+Munidos desta mentalidade, podemos garantir a robustez e extensibilidade de nosso projeto.
+
+@@08
+Botando ordem na casa
+
+[00:00] Bem-vindos de volta. Vamos começar bem devagar a aplicar no nosso código um pouco sobre o que falamos sobre arquitetura.
+[00:12] Antes de qualquer coisa, eu preciso falar que o que a gente vê em um treinamento, jamais vai ser tudo o que existe para aprender sobre arquitetura.
+
+[00:20] Então, todos aqueles conceitos que citei de Arquitetura Hexagonal, Arquitetura Limpa, Domain-Driven Design, você pode e deve pesquisar mais a fundo, ler livros, ver vídeos avulsos, inclusive, aqui na Alura+.
+
+[00:35] Enfim, existem muitos conceitos para aprendermos e o treinamento serve justamente para consolidarmos esses conhecimentos.
+
+[00:44] Então, continuando, de acordo com o que já falei até essa parte do treinamento, tudo o que criamos faz parte do nosso domínico, por quê?
+
+[00:54] Eu consigo acessar pela linha de comando alguma funcionalidade? Ainda não, então não tenho aplicação. Eu consigo acessar banco de dados, arquivos? Por enquanto não, então ainda não tenho infraestrutura.
+
+[01:07] Tudo o que eu tenho é o domínio da minha aplicação, então vamos deixar isso bem claro e criar uma pasta dominio, sem acentuação.
+
+[01:18] Então tudo o que temos está relacionado ao domínio da aplicação. Eu refatorei a pasta e obviamente, da mesma forma como quando começamos a falar de módulos, temos o problema do namespace.
+
+[01:32] Precisamos corrigir os namespaces para igualar com a estrutura de pastas. Então, eu estou no namespace, no módulo, na camada, no pacote de Domínio.
+
+[01:44] Então eu vou definir em todas as minhas classes essa informação. Indicação está dentro de Domínio. Então, repare que meu pacote agora é, dentro daquele pacote raiz da aplicação, eu estou no pacote Domínio, que está no módulo Indicação.
+
+[02:03] De novo, precisamos apertar "Alt+Enter+Enter" para importar do pacote correto. Mas, repare que vai mudar para use Alura\Arquitetura\Dominio\Aluno\Aluno;, pois o aluno também vai estar no pacote domínio.
+
+[02:18] Também vamos corrigir para namespace Alura\Arquitetura\Dominio\Aluno; assim como o e-mail e o CPF que também vão esta no pacote Domínio.
+
+use Alura\Arquitetura\Dominio\Cpf;
+use Alura\Arquitetura\Dominio\Email;
+COPIAR CÓDIGO
+[02:35] Então, eu não fiz muita coisa, eu só trouxe todas as minhas pastas e arquivos para uma pasta Domínio e com isso eu obviamente precisei alterar o pacote da minha aplicação, o namespace, para refletir isso.
+
+[02:52] Então, agora tudo esta dentro do namespace Domínio. Por enquanto é só esse que eu tenho, mas eu obviamente vou criar novas camada em breve, que vão virar novos namespaces.
+
+[03:05] Um ponto que não citei no vídeo sobre módulos é que se eu altero o pacote da minha aplicação eu preciso também corrigir meus testes.
+
+[03:13] Porque se eu rodá-los agora, eles vão falhar, pois não vão encontrar as classes corretas. Então, vamos lá.
+
+[03:25] Em EmailTest.php corrigimos para use Alura\Arquitetura\Dominio\Email;, em CpfTest.php corrigimos para use Alura\Arquitetura\Dominio\Cpf;e em aluno para use Alura\Arquitetura\Dominio\Aluno\Telefone;.
+
+[03:44] Vinícius, mas toda vez que eu mudar uma pasta vou precisar fazer isso? O PhpStorm da a opção de renomear um namespace com o "Shift+F6" e quando você modificar já vai ser corrigido nos outros locais.
+
+[03:58] Só que nem todo editor de texto, e é muito comum as pessoas utilizarem VS Code, Sublime Text, nem todos eles fornecem essa funcionalidade, então fiz dessa forma para todos verem que às vezes pode ser um pouco trabalhoso.
+
+[04:10] Por isso, o mais comum é que agente pense na arquitetura antes de começar a criar as classes. Então, esse detalhe de como vamos separa a aplicação, já seria a primeira coisa que faríamos.
+
+[04:23] Então, além de Domínio, eu sei que vou ter agora uma outra camada de aplicação e de infraestrutura. E vou criando isso conforme vamos evoluindo no nosso projeto.
+
+[04:35] Mas, agora, já começamos a entender que, primeiro existem padrões de arquitetura, segundo posso aproveitar partes de cada um para chegar em um padrão que eu vou aplicar, não preciso seguir nada cegamente.
+
+[04:51] Eu posso modificar de acordo com as minhas necessidades e a da minha equipe. Lembre-se, você está desenvolvendo código para resolver um problema que precisa ser resolvido da melhor forma possível e quando você tem uma equipe, a melhor forma possível precisa ser discutida com a equipe.
+
+[05:10] Você não vai tomar todas as decisões sozinho. Com isso definido, chegamos no terceiro ponto que é aplicar na prática, começar a dividir nosso Domínio de todo o resto.
+
+[05:23] Nada mais justo do que separar isso em um namespace, em uma pasta específica para ele. Agora que já definimos nosso Domínio, vamos começar a conversar sobre aquele problema que citei, em que temos o Domínio, que precisa saber da infraestrutura.
+
+[05:40] Só que, como comentei, quero que a dependência seja sempre para dentro do padrão de arquitetura. A infraestrutura pode conhecer a aplicação, o Domínio, mas o Domínio não pode conhecer nada para fora.
+
+[05:50] Então vamos conversar bastante sobre isso no próximo capítulo.
+
+@@09
+Faça como eu fiz
+
+Chegou a hora de você seguir todos os passos realizados por mim durante esta aula. Caso já tenha feito, excelente. Se ainda não, é importante que você execute o que foi visto nos vídeos para poder continuar com a próxima aula.
+
+Continue com os seus estudos, e se houver dúvidas, não hesite em recorrer ao nosso fórum!
+
+@@10
+O que aprendemos?
+
+O que aprendemos nessa aula:
+Que podemos utilizar namespaces do PHP para separar a nossa aplicação em módulos que façam sentido
+Alguns padrões arquiteturais
+A aplicar conceitos de padrões arquiteturais ao separar nossa aplicação em camadas. Começamos pelo domínio
