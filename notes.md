@@ -909,3 +909,180 @@ O que aprendemos nessa aula:
 Que podemos utilizar namespaces do PHP para separar a nossa aplicação em módulos que façam sentido
 Alguns padrões arquiteturais
 A aplicar conceitos de padrões arquiteturais ao separar nossa aplicação em camadas. Começamos pelo domínio
+
+#### 09/02/2024
+
+@04-Repositórios
+
+@@01
+Projeto da aula anterior
+
+Caso queira, você pode baixar aqui o projeto do curso no ponto em que paramos na aula anterior.
+
+https://caelum-online-public.s3.amazonaws.com/1774-php-arquitetura-introducao/03/php-arquitetura-projeto-aula-3-completo.zip
+
+@@02
+Criando as interfaces
+
+[00:00] Sejam muito bem-vindos de volta a mais um capítulo deste treinamento de arquitetura com php. Terminamos o capítulo anterior com esse questionamento. Como posso trabalhar com persistência, por exemplo, se meu domínio não pode conhecer da infraestrutura? Como vou, por exemplo, ao matricular um aluno, salvar esse aluno em um banco de dados se meu domínio não pode conhecer nada de SQL, de infraestrutura?
+[00:26] E se você fez o treinamento, e espero que você tenha feito, de PDO, você já sabe responder essa pergunta. O nosso domínio sabe que existe um repositório de alunos, se esse repositório de alunos vai ser em arquivo, se vai ser em um banco de dados, se vai ser um banco relacional, não relacional, se vou salvar em outra API, isso pouco importa para o nosso domínio. Isso é detalhe de infraestrutura. Só que nosso domínio sabe que existe algum repositório.
+
+[00:55] Logo, se sei que existe algo, mas não sei como esse algo é implementado, o que tenho na prática é uma interface. Então, no meu domínio do aluno posso simplesmente criar uma interface chamada RepositorioDeAluno, ou RepositorioAluno, ou AlunoRepository, o que você preferir.
+
+[01:20] No meu repositório de aluno, todo repositório de aluno que for implementar essa interface, seja um repositório de aluno com PDO, um repositório de aluno com doctrine, um repositório de aluno através de API, um repositório de aluno de arquivo. Tanto faz. Todos os repositórios vão precisar adicionar um aluno, e isso não precisa devolver nada. Talvez pudesse devolver se teve sucesso ou não, mas prefiro não devolver nada, em caso de erro lança uma exceção.
+
+[01:55] Precisamos também poder buscar por CPF um aluno, e talvez precisemos buscar todos. Podemos acabar precisando buscar todos os alunos. Isso vai devolver um array, que na prática é um array de alunos. Definimos no nosso domínio quais funcionalidades um repositório precisa fornecer para nós.
+
+[02:32] Eu sei que através de um repositório eu preciso adicionar um aluno. Preciso ser capaz de buscar um aluno por CPF, buscar todos os alunos. Esse método não vou deixar por agora só para simplificarmos, mas você poderia, por exemplo, implementar um removerPorCpf, que passo só o CPF. Poderia ter atualizar um aluno, poderia ter buscar alunos matriculados, buscar aniversariantes.
+
+[03:03] No seu repositório você define o que você precisa que um repositório tenha. Agora, como isso vai ser implementado, meu domínio conhece SQL? Não. Então esses detalhes de infraestrutura, e foca nisso, é só um detalhe. Lembra, se você conversar com uma pessoa que gerencia seu time, que é um especialista de negócios, essa pessoa que trabalha só com o negócio, que não conhece de tecnologia, não se importa se vai ser com SQL, se vai ser através de um banco não relacional, se vai ser sem arquivo, com API, em memória, essa pessoa não se importa como o repositório de alunos é implementado. Ele só se importa que você consiga em algum lugar adicionar um aluno. E que depois você consiga buscar esse aluno por CPF.
+
+[03:53] Nos próximos vídeos vamos ver estratégias de como implementar essa interface na prática. Só que agora já vimos que conseguimos atingir esse modelo facilmente, porque minha infraestrutura está na parte de fora do domínio, então minha infraestrutura pode conhecer uma interface do domínio para implementar ela.
+
+[04:15] O que vamos fazer nos próximos vídeos e daqui para a frente? A nossa infraestrutura vai poder implementar interfaces que são definidas no domínio. Ou seja, vamos criar implementações desse nosso repositório definido no domínio.
+
+@@03
+Implementando com PDO
+
+[00:00] Bem-vindos de volta. Nesse vídeo vamos começar a implementar nossa camada de infraestrutura. Como estamos falando de infraestrutura, preciso ter alguma infraestrutura para implementar.
+[00:14] Eu preparei um SQL bem simples para criar um banco em sqlight, mas caso você queira, caso você prefira, você pode utilizar qualquer outro banco, se você quiser inclusive utilizar algum banco não relacional não tem problema.
+
+[00:26] Vou te pedir por enquanto para começar com um banco relacional para você utilizar também o SQL, implementarmos com PDO, mas depois pode se sentir à vontade para utilizar qualquer outro banco não relacional, o que for.
+
+[00:42] Aqui estou utilizando sqlight, se quiser usar MYSQL, post, Oracle, SQL server, o que você tiver mais familiaridade, sem problema. Para quem quiser também já vou fornecer o arquivo do banco.sqlight, já com essa estrutura de tabelas criada para conseguirmos partir do mesmo ponto.
+
+[01:00] Vou criar obviamente minha pasta de infraestrutura, para simplificar vou chamar de infra, ficar um pouco mais simples e não perde a legibilidade. Estou falando sobre um detalhe do aluno, correto? Então seguindo a mesma lógica que tenho em domínio vou seguir em infra, onde tenho o aluno, e aqui tenho o repositório de aluno. Vou criar um repositório de aluno com PDO.
+
+[01:30] Você pode, obviamente, selecionar um nome diferente caso faça mais sentido para você, mas para mim esse nome está bem legível. Eu vou implementar aquela interface RepositorioDeAluno. Com isso, o php storm já me obriga a implementar todos esses métodos. Então vamos nessa.
+
+[01:52] Primeiro tenho que conseguir adicionar um aluno, depois tenho que conseguir buscar alunos por CPF e buscar todos. Eu vou implementar junto com vocês o método adicionar e vou deixar como desafio esses dois métodos buscarPorCpf e buscarTodos, porque eles são mais complicados, mas vimos como fazer no treinamento de PDO. Eu vou implementar agora o adicionar e no próximo vídeo vou voltar com esses dois implementados para você ver como eu fiz e comparar com a sua solução.
+
+[02:22] Continuando, quero adicionar um aluno. A primeira coisa que preciso é de uma conexão com o PDO. Vamos no nosso construtor receber uma conexão com PDO. Adicionei essa propriedade à classe, podemos começar daí. Preciso de um SQL para inserir um aluno. Se dermos uma olhada na nossa tabela, a tabela alunos, no plural, tem CPF, nome e e-mail. Tudo como string.
+
+[02:55] Meu SQL vai ser ‘INSERT INTO alunos_’, vou inserir todos os campos, CPF, nome e e-mail, então não preciso especificar aqui. Vou direto para values, onde vou informar CPF, nome e o e-mail.
+
+[03:12] Repare que o php storm inclusive se integra com meu banco de dados e consegue me dizer se estou na posição correta. Isso é bem útil para quem utiliza uma IDE isso faz bastante diferença.
+
+[03:25] Esse é meu SQL. Vou preparar um statement, com minha conexão vou preparar esse SQL. Preparei, posso adicionar os valores, posso fazer o bind de cada um dos valores.
+
+[03:41] No meu CPF, e posso utilizar dessa forma, vou passar o aluno, e como busco CPF? Preciso ter um método CPF. Implemento o método CPF, que retorna uma string por enquanto. É só o que preciso, que vai ser o this->CPF.
+
+[04:00] Mas CPF não é uma string, é um objeto. Mas lembra que ele tem o método __toString? Então se tento retornar ele como string, o php já faz essa conversão para nós.
+
+[04:11] Adicionei o CPF, vou adicionar agora o nome. Como vou conseguir buscar o nome do aluno? Vamos criar esse método. Vamos retornar o nome desse aluno, que é uma string. E repare que só estou criando os métodos de acesso, ou seja, só estou criando os meus getters quando realmente preciso para alguma coisa, certo? Até esse momento não tinha precisado. Mas agora preciso, então vamos lá.
+
+[04:42] Vou adicionar também o e-mail. Preciso pegar o e-mail do aluno. Esse e-mail mais uma vez posso retornar direto o e-mail, e posso retornar diretamente como string. Não preciso expor o acesso ao objeto e-mail.
+
+[05:00] A princípio aqui já está tudo preparado. Posso executar esse statement. Inseri meu aluno. Só que meu aluno tem vários telefones, correto? Então também precisamos inserir os telefones do aluno. Para cada um dos telefones do aluno, também não temos o método telefones, então vamos criar. O php storm não me ajudou, me deixou na mão, vamos criar direto o ‘public function telefones’.
+
+[05:40] Podemos fazer de duas formas. Devolvendo o objeto do tipo telefone, ou devolvendo direto uma string. Por enquanto, vou devolver um array dos objetos, e não da string. O que quero dizer? Vou devolver direto os telefones e não a representação como string de cada um dos telefones. Se isso ficou confuso, você vai entender o motivo agora.
+
+[06:03] Cada um desses telefones é um objeto do tipo telefone. Inclusive, vou informar isso para o php storm para ele saber do que estou falando. Então, cada um desses telefones tem por enquanto nada, porque um telefone ainda não tem o método para recuperar o ddd e nem um método para recuperar um número, e eu preciso disso.
+
+[06:28] Vamos informar que isso é um telefone e vamos criar um novo statement, vamos fazendo parte a parte. Vou preparar um novo insert porque vou fazer o insert agora into telefones, onde os values vão ser ddd e número. Preciso também informar qual o CPF do aluno.
+
+[06:55] Esse nosso SQL começou a ficar grande, vamos extrair para uma variável chamada SQL. Preciso informar o CPF do aluno a quem pertence o telefone que estou inserindo. Vamos adicionar com bindValue no campo ddd, vou pegar o telefone ddd, que ainda não existe. A mesma coisa vou fazer para o campo número. E agora para o campo CPF do aluno vou pegar de aluno CPF. Esse método já existe.
+
+[07:30] Preciso criar o método ddd, que vai retornar uma string, que é nosso ddd, e também preciso do método número, que vai me retornar uma string, que é o número desse aluno. Dessa forma, além de conseguir pegar separadamente o ddd e o número de um telefone, consigo ainda representá-lo como string. O que funcionava antes continua funcionando e adicionei funcionalidades novas.
+
+[08:02] Depois disso posso executar. E agora o que vamos fazer? Quando for chamar todas essas queryes, vou acabar executando um monte de query dentro de um método só, então faria sentido começar uma transação no início e finalizar uma transação no final. Correto? Mas se você fez o treinamento e mais uma vez espero que você tenha feito, de PDO, você sabe que isso não faz sentido, não funciona. Não é responsabilidade de um repositório gerenciar a conexão, porque além de adicionar um aluno, posso no mesmo use case, na mesma regra da aplicação adicionar um aluno e já realizar uma indicação para ele, ou ele já indicar outro aluno, posso já vincular algum curso a ele.
+
+[08:55] Ou seja, gerenciar a transação deve ser uma responsabilidade de quem está chamando esse repositório, então aqui não vou me importar com a transação. Agora que começamos a implementar esse repositório, vou dar um tempo para você primeiro analisar, ver se está tudo certo, se não comi moscas, e também criar os próximos métodos. Eu quero que você implemente. Caso você queira, e eu recomendo bastante, crie testes de integração, onde você cria um banco de dados sqlight em memória, e veja se realmente está inserindo, se está conseguindo buscar, etc.
+
+[09:35] Mais uma vez, isso tudo foi ensinado em treinamentos anteriores, por isso estou passando com pressa. Tudo isso já foi ensinado em treinamentos aqui na Alura, como por exemplo o treinamento específico de PDO, os treinamentos de testes de integração, isso tudo já vimos e estamos recapitulando no contexto de arquitetura, onde estamos separando nosso domínio da infraestrutura.
+
+[09:57] No próximo vídeo volto com a implementação completa desse repositório e também vamos implementar juntos um novo repositório utilizando nenhuma infraestrutura, salvando tudo em memória, sem persistir.
+
+@@04
+Repositórios em duas camadas
+
+Este ponto já foi aprendido durante o curso de PDO, mas recordar é viver. Separamos o nosso repositório em duas camadas: interface no domínio e implementação na infraestrutura.
+Que vantagem temos ao separar os repositórios nessas duas camadas?
+
+O uso de interfaces deixa as consultas SQL mais rápidas
+ 
+Alternativa correta
+Isolamos o nosso domínio de detalhes de persistência
+ 
+Alternativa correta! Ao deixarmos apenas a interface na camada de domínio, a camada de aplicação poderá depender dos nossos repositórios, mas deixando a implementação na camada de infraestrutura, o nosso domínio não precisa conhecer detalhes de infraestrutura.
+Alternativa correta
+Os gráficos gerados por ferramentas de métricas ficam mais bonitos, por utilizarmos interfaces
+
+@@05
+Implementando em memória
+
+[00:00] Bem-vindos de volta. Vim mostrar minha implementação para vocês, daqueles dois outros métodos. Fiz duas implementações diferentes, uma para cada utilizando abordagens diferentes para darmos uma olhada e ver qual é mais interessante. Mas antes, fiz uma modificação que provavelmente você já tinha pensado.
+[00:18] Quando faço o SQL para inserir cada um dos telefones, não preciso ficar preparando ele dentro do loop. Posso preparar ele uma vez só, inclusive já definir o CPF, e dentro do loop, para cada um dos telefones, só defino os valores que mudam de telefone para telefone, e posso executar o mesmo prepared statement várias vezes. Com isso ganho bastante em performance.
+
+[00:42] Então, depois de mostrar essa modificação no método adicionar, vamos no método buscarPorCpf. Nesse método eu segui uma abordagem de separar a busca pelo aluno e o mapeamento desse aluno para um objeto do tipo aluno em métodos diferentes.
+
+[01:00] Fiz um SQL, quebrei a linha para enxergarmos melhor, onde busco os dados necessários. Poderia muito bem trocar todos esses campos por um asterisco, só que se futuramente um campo documento fosse adicionado na tabela de alunos e esse campo documento tivesse o arquivo do RG do aluno, esses dados desnecessários com um dado pesado, um dado grande, viria na minha query, eu perderia performance de forma desnecessária, então optei por adicionar manualmente cada um dos campos que quero buscar nesse SQL.
+
+[01:40] Trouxe esses dados com meu SQL, preparei esse SQL, e adicionei a busca pelo CPF. Nessa busca por CPF estou deixando um pouco mais explícito que quero pegar a string desse CPF, e estou executando a busca. Depois pego todos os dados, e você pode se perguntar caso você não se lembre do treinamento de PDO, “mas Vinicius, você está buscando um aluno só, que é com o CPF específico. Por que você está buscando todos os alunos, uma lista de alunos?”.
+
+[02:18] Porque quando executamos o left join, para cada um dos telefones que esse aluno tiver vai vir uma linha, então estou pegando todos e na primeira linha tenho os dados do aluno e o primeiro telefone e nas linhas seguintes só vou adicionando telefones, só que antes disso verifico se encontrei algum resultado, porque se não vier nenhum resultado, significa que não encontrei esse aluno.
+
+[02:42] Criei uma exception própria que estende de DomainException, e define já a mensagem baseada no CPF. Só estou mostrando que uma classe de infraestrutura pode sem problema nenhum lançar uma exceção de domínio.
+
+[02:56] Com essa exceção sendo lançada caso eu não encontre um aluno pelo CPF, vou realizar o mapeamento desse aluno. Ao mapear esse aluno, pego a primeira linha desse resultado e crio o aluno. Depois, em todas as linhas verifico se existe ddd e telefone, porque se não existir não faz sentido adicionar. E depois de garantir que existe ddd e número de telefone, adiciono cada um dos telefones no aluno. Depois de realizar esse mapeamento devolvo aluno.
+
+[03:30] Temos nosso método buscarPorCpf implementado. Agora, no nosso buscar todos, segui uma abordagem um pouco diferente, inclusive deixei um bug para você resolver, esse bug não existe no mapearAluno, mas existe no buscarTodos.
+
+[03:50] Eu realizei essa busca sem o filtro, sem where, estou buscando todos os alunos e vinculando todos os telefones. Como não tem filtro não preciso usar um prepared statement e estou buscando a lista de dados de todos os alunos. Ótimo. Crio um array de alunos, ou seja, estou usando uma abordagem diferente, não tem um método específico para mapear os alunos. Estou criando um array que vai ter os alunos. E para cada resultado nessa lista de dados estou vendo se já existe esse aluno, se ele já está no nosso array de alunos.
+
+[04:25] Se ainda não existe é porque estamos naquela primeira linha de cada um dos alunos. Então criamos o aluno com CPF, nome e e-mail, e depois para esse aluno adicionamos o telefone. A dica que vou dar para vocês é que o bug está nessa linha 94. Depois vocês comparam os dois métodos e resolvem esse bug. Vou deixar isso como desafio. Caso você não consiga resolver, achar esse problema, pode abrir uma dúvida no fórum que vou tentar responder pessoalmente. Quando não consigo sempre tem um moderador ou algum aluno bastante solícito para ajudar. Mas já estou dando a dica de que o bug está aqui.
+
+[05:02] Adicionei o telefone a cada um dos alunos, depois devolvo essa lista de alunos. Estou chamando o método array.values simplesmente para tirar a chave, que é o CPF, aqui.
+
+[05:15] Nada disso que eu mostrei agora é novo, já trabalhamos isso em cursos anteriores, por isso estou passando bem rápido, deixando desafios no meio do caminho para você poder exercitar tudo que já trabalhamos.
+
+[05:26] Com o nosso repositório de aluno com PDO criado, utilizamos uma exceção nova, vamos criar um novo repositório. Imagine que quero criar um teste de unidade de algum local que precisa de um repositório, de algum serviço de aplicação que vamos ver mais para frente. Queremos criar um teste para alguma classe que precise de um repositório. Imagine o trabalho que íamos ter para criar um repositório de aluno com os alunos que quisermos, porque íamos ter que criar uma conexão com PDO, criar um banco de dados, executar SQL para criar as tabelas. Daria muito trabalho.
+
+[06:08] O que vou fazer? Vou criar um repositório de alunos em memória, para facilitar esses cenários onde quero simplesmente testar. Então, RepositorioDeAlunoEmMemoria. Vou implementar RepositorioDeAluno. Inclusive, vou renomear, porque estou usando no singular. E vou implementar todos aqueles métodos.
+
+[06:40] O que meu repositório de alunos em memória vai precisar ter? Ele vai precisar ter um array de alunos, vai começar vazio. Quando eu tentar adicionar um aluno simplesmente adiciono meu array. Moleza. Depois volto no buscar por CPF. O buscar todos simplesmente retorna todos os alunos, e o buscar por CPF posso retornar o resultado de um array filter. Desses meus alunos posso pegar e filtrar um aluno, verificando que o CPF dele é igual ao CPF que passei por parâmetro.
+
+[07:25] Aqui nesse método, o que estou fazendo? Já vou te explicar o que o php storm me falou. Estou filtrando os meus alunos para pegar todos os alunos que tenham CPF igual ao CPF que passei por parâmetro. Quantos alunos tem que retornar esse filtro? Um só. Se ele não me retornar nenhum aluno, ou seja, se o número de alunos em alunosFiltrados for igual a 0, significa que não tenho esse aluno, aluno não encontrado.
+
+[08:17] Agora, se meu número for maior do que 1, aí tenho outro problema. Fica mais um desafio. Se o número de alunos filtrados for maior do que 1, que tipo de exceção você vai lançar aqui? Fica o desafio, porque essa é uma exceção complicada. Se tenho mais de um aluno com o mesmo CPF, o problema é bem mais complexo, bem maior do que simplesmente uma query errada ou algo do tipo, certo? Vou deixar isso como desafio.
+
+[08:47] Caso contrário, se não é 0 e também não é maior do que 1, sei que só tenho um resultado, então posso retornar alunos filtrados na primeira posição, que é um aluno. Com isso, implementei a busca por CPF, implementei a adição de um aluno, implementei a busca de todos os alunos em memória. De forma muito simples, e qualquer método que precisar de um repositório de aluno posso passar tanto um repositório de aluno em memória, quanto um repositório de aluno que utilize PDO.
+
+[09:20] Repara que essa separação entre domínio e infraestrutura já começa a valer a pena. Já começo a ter formas de acessar um repositório completamente diferentes, inclusive, como já tenho feito e como fiz vários, deixo mais um desafio aqui. Além de você decidir que tipo de exceção lançar, já que é um caso que teoricamente nunca deveria acontecer, vou deixar um desafio de você criar um novo repositório.
+
+[09:47] Esse repositório vai ser como você quiser. Pode ser um repositório em arquivo. Caso você tenha familiaridade com outros tipos de bancos de dados, como por exemplo um mongo para um banco não relacional, um rediz para um banco chave valor em memória. O que você preferir, a tecnologia que você preferir, deixo o desafio para você criar um repositório utilizando essa tecnologia.
+
+[10:11] Com isso já separamos bastante nossa infraestrutura do nosso domínio. Já temos espaço para continuar evoluindo nossa aplicação, lembrando sempre de focar nos detalhes da arquitetura.
+
+@@06
+Desafio: Doctrine
+
+Caso você já tenha feito os cursos de Doctrine aqui na Alura, implemente um novo repositório utilizando o Doctrine.
+Dicas:
+
+Utilize XML para que as nossas entidades não dependam de anotações e conheçam detalhes da infraestrutura
+Crie uma pasta como Persistencia ou Mapeamento dentro da infraestrutura, para adicionar os arquivos de mapeamento
+
+@@06
+Desafio: Doctrine
+
+Caso você já tenha feito os cursos de Doctrine aqui na Alura, implemente um novo repositório utilizando o Doctrine.
+Dicas:
+
+Utilize XML para que as nossas entidades não dependam de anotações e conheçam detalhes da infraestrutura
+Crie uma pasta como Persistencia ou Mapeamento dentro da infraestrutura, para adicionar os arquivos de mapeamento
+
+@@07
+Faça como eu fiz
+
+Chegou a hora de você seguir todos os passos realizados por mim durante esta aula. Caso já tenha feito, excelente. Se ainda não, é importante que você execute o que foi visto nos vídeos para poder continuar com a próxi
+
+Continue com os seus estudos, e se houver dúvidas, não hesite em recorrer ao nosso fórum!
+
+@@08
+O que aprendemos?
+
+Nesta aula, aprendemos:
+O conceito de repositórios, já visto no treinamento de PDO
+A motivação para separar os repositórios em mais de uma camada
+Que é possível criar implementações que sejam mais fáceis de utilizar em nossos testes
