@@ -1258,3 +1258,229 @@ Que há Domain, Application e Infrastructure Services
 Domain Services são classes que representam uma ação entre mais de uma entidade
 Application Services controlam o fluxo de alguma regra em nossa aplicação
 Infrastructure Services são implementações de interfaces presentes nas camadas de domínio ou de aplicação
+
+#### 10/02/2024
+
+@06-Interface com usuário
+
+@@01
+Projeto da aula anterior
+
+Caso queira, você pode baixar aqui o projeto do curso no ponto em que paramos na aula anterior.
+
+https://caelum-online-public.s3.amazonaws.com/1774-php-arquitetura-introducao/05/php-arquitetura-projeto-aula-5-completo.zip
+
+@@02
+Como usar a aplicação
+
+[00:00] Sejam bem-vindos a esse que é o último capítulo desse nosso treinamento de arquitetura utilizando php, e o último vídeo foi o que considero mais polêmico. No último capítulo terminamos falando um pouco da separação dos serviços que podem fazer parte da camada de aplicação. Isso, como você pode ter percebido no vídeo anterior, é um assunto bastante polêmico, várias literaturas entram em contradição quando o assunto é serviço na camada de aplicação, então existem muitas definições do pode ser feito, o que não pode ser feito.
+[00:33] Uma regra que é bastante conhecida é que se em algum lugar do seu domínio existe a dependência da classe que vai ser implementada, então a interface vai ficar na camada de domínio. Caso contrário vai ser na camada de aplicação.
+
+[00:52] Só que por que eu não sigo essa regra? Porque baseado nesse princípio nosso repositório nunca vai ficar na camada de domínio, sendo que o repositório é claramente uma responsabilidade de domínio.
+
+[01:02] Então a lógica que eu sigo e que muitas pessoas próximas de mim já me disseram que seguem também, pessoas que consumiram a mesma literatura que eu consumi, lendo sobre DDD, sobre arquivo hexagonal, sobre clima architecture, o que é feito na prática?
+
+[01:20] Regras que fazem parte da empresa ficam na camada de domínio, regras que só existem na aplicação, que se não fossem a aplicação não aconteceriam, ficam na camada de aplicação. É algo bastante confuso, que demanda muita leitura e contato com pessoas mais experientes do que nós.
+
+[01:40] O contato com pessoas que já implementaram de alguma forma vai fazer com que enxerguemos em que momento colocamos na camada de aplicação, em que momento colocamos na camada de domínio. Isso é muito mais questão de experiência do que regrinha que eu possa vir aqui e falar para você que é dessa forma, faça assim.
+
+[01:55] Com isso relativamente esclarecido, vamos a um ponto que acredito que você esteja se perguntando bastante. Como utilizo essa aplicação? Já temos bastante coisa definida no nosso domínio, nossa infraestrutura já tem alguns serviços criados. Já definimos alguns repositórios. Mas como acesso a aplicação?
+
+[02:17] Vamos criar um ponto de acesso, por exemplo, um comando para essa aplicação. Vou chamar de matricular-aluno. Esse ponto de entrada poderia muito bem ser outra aplicação em php que vai utilizar nosso projeto, poderia ser outra camada chamada de apresentação, que teria os comandos, teria a interface com a web.
+
+[02:41] Existem milhões de formas de fazer isso, mas vou criar fora da pasta src esse ponto de entrada da aplicação. Sabemos que precisamos do vendor/autoload, e com isso quero matricular aluno, então preciso receber um e-mail, preciso receber antes CPF e preciso receber o nome, e como você já fez os treinamentos de php aqui você sabe que conseguimos pegar esses dados da linha de comando através da variável $argv. Vou receber CPF, nome, telefone e e-mail.
+
+[03:23] Tenho esses dados. Eu poderia receber mais telefones, mas para ficar simples vou receber um só. Eu vou criar um novo aluno, com CPF, nome, e-mail, vou importar, e tenho o CPF, nome e e-mail. Vou adicionar esse telefone a um ddd e número. Já tenho um aluno com seus telefones, tudo definido. Vou criar um repositório e por enquanto vou utilizar o repositório em memória, para ficar mais simples, para não precisar acessar aquele banco de dados e etc.
+
+[04:20] Nesse repositório vou adicionar esse aluno e pronto, tenho uma regra de negócios da minha aplicação, um fluxo de uma regra na minha aplicação criada. Recebe os dados, seja de onde for, cria um aluno com esses dados, e em um repositório adiciona esse aluno. Tenho a organização de um fluxo. Vamos executar esse código. Vou abrir o terminal, php matricular-aluno e vamos passando os parâmetros. Primeiro CPF, depois nome, um e-mail, um ddd, e um telefone.
+
+[05:12] Se eu executo essa aplicação tudo funciona, não recebi nenhum erro. Se passar um CPF com valor inválido, recebo um erro. Se passar CPF válido, só que e-mail for inválido, recebo um erro também. Repare que embora meu aplicativo, minha aplicação em si, minha interface com usuário, esteja completamente pobre, o fato do meu domínio ser rico, já conter todas as regras necessárias, faz com que minha aplicação seja robusta. Então, não preciso ficar refazendo validações.
+
+[05:52] O que eu poderia fazer era se tiver algum problema na hora de criar um aluno exibe uma mensagem mais bonita. Se tiver um problema na hora de salvar um aluno, exibe uma mensagem mais bonita. Mas não preciso me preocupar em como realizar essas validações. Com um domínio rico, como fizemos, temos muito mais vantagem.
+
+[06:14] Você provavelmente está se perguntando que tipo de aplicação é essa que vai receber tudo dessa forma em um arquivo só, e se eu quisesse matricular um aluno além de pela linha de comando, que um atendente pode precisar fazer pelo computador na hora que um aluno chegar presencialmente, como posso fazer isso através da web, para receber uma requisição através de um formulário ou de uma API.
+
+[06:38] Se eu deixar esse arquivo com todo nosso fluxo, precisamos copiar esse código e colar em um controller da web, um controller de uma API que tenhamos. Vamos acabar tendo muita duplicação de código. Se eu quiser mudar o repositório de aluno em memória para o repositório utilizando PDO vou ter que mudar em vários lugares. Se o fluxo da minha aplicação mudar um pouco e depois de adicionar preciso mandar um e-mail também vou precisar alterar em vários lugares.
+
+[07:05] Então, o ideal é separar isso em um caso de uso, um use case, e no ddd, no livro do Domain-Driven Design, os casos de uso são chamados de application services, ou serviços de aplicação. Segundo a literatura do ddd, um serviço de aplicação é isso, algo que recebe dados da interface de usuário e passa esses dados organizando o fluxo para a camada de domínio.
+
+[07:40] Repare que dependendo da literatura os conceitos podem acabar mudando. É isso que vamos implementar no próximo vídeo, um application services ou use case, você pode chamar como preferir.
+
+@@03
+Command-line interface
+
+Como recordar é viver, vamos falar sobre as variáveis que temos acesso ao utilizar a CLI (Command-line interface).
+Quais são os valores das variáveis $argc e $argv, respectivamente?
+
+$argc possui o apenas número de parâmetros passados para o arquivo PHP, e $argv é um array com o valor desses parâmetros
+ 
+Alternativa correta
+$argv possui o número de parâmetros passados e $argc é um array com o valor desses parâmetros
+ 
+Alternativa correta
+$argc possui o número de parâmetros passados mais 1, e $argv é um array com o valor desses parâmetros
+ 
+Alternativa correta! O nome do arquivo executado conta como um parâmetro, por isso o "mais 1".
+
+@@04
+Use cases
+
+[00:00] Bem-vindos de volta. Se você se lembra bem, caso você tenha feito os cursos de padrão de projetos, falando sobre um padrão command e eu mostrei uma implementação que tinha alguma relação com o que vamos fazer agora, com algumas diferenças, mas já aprendemos esse padrão que vou aplicar. Caso você não tenha feito esse treinamento, vem comigo que vou te mostrar o que quero fazer.
+[00:25] O que recebemos na requisição matricular-aluno.php é o CPF, o nome, o e-mail, um DDD e um número, só isso. Posso inclusive, o que vejo como mais comum, ter dois casos de uso. Ter um caso de uso para criar o e-mail e um outro para adicionar telefone. Isso já vi até sendo feito em telas diferentes de acordo com a aplicação. Nós podemos seguir as duas abordagens.
+
+[00:58] Como nesse código fizemos de uma, recebendo somente um telefone, vou fazer agora diferente. Um serviço para você criar o aluno e outro para você adicionar telefones. Vamos fazer dessa forma.
+
+[01:14] Isso é algo que minha aplicação precisa realizar, é um fluxo que minha aplicação precisa realizar, então vai estar na minha camada de aplicação. Isso está relacionado ao aluno, então vou criar no módulo de aluno. E o que quero fazer é matricular um aluno, então vou criar um novo diretório chamado MatricularAluno.
+
+[01:35] Por que estou criando um novo diretório? Porque podemos ter vários casos de uso e cada caso de uso pode acabar tendo mais de um arquivo, de uma classe, como veremos aqui.
+
+[01:48] Antes de criar a execução desse serviço, quero poder informar quais são os dados que vou receber, porque pense comigo. Você não recebe da web um aluno. Você não recebe da linha de comando um aluno já criado. O que você recebe são dados primitivos, normalmente strings e inteiros, e a partir disso você vai criar um objeto do seu domínio.
+
+[02:13] Então, o que você recebe também pode ser especificado através de uma classe, e normalmente nesse ponto chamamos esse tipo de classe que vou criar agora de DTO, que é data transfer object, ou objeto de transferência de dados.
+
+[02:28] O que isso quer dizer? Quero pegar os dados da linha de comando e mandar para o meu domínio. Quero pegar os dados que venham da web, de um formulário, por exemplo, e mandar para o meu domínio. Quero pegar os dados que vieram em JSON e mandar para o meu domínio.
+
+[02:45] Então, esse DTO que vamos criar contém os dados necessários para executar esse caso de uso. Vou chamar de MatricularAlunoDto. Aqui só vou ter dados, não vou ter nenhum comportamento, isso é uma classe completamente anêmica, e é de propósito.
+
+[03:10] Vou ter o CPF do aluno, o nome do aluno, o e-mail do aluno, e a princípio é isso. Para eu matricular um aluno preciso disso. Peço o telefone em outra tela, por exemplo. Vou receber esses dados todos no construtor, inclusive vou utilizar o "Alt + Insert" que é mais rápido, e recebendo todos esses dados tenho meu objeto de transferência de dados pronto. Recebo o número do CPF, o nome e o e-mail dele e a partir disso, meu serviço de aplicação vai poder fazer o que ele precisa fazer. Então vamos criar esse serviço de aplicação.
+
+[03:57] Criar uma classe chamada MatricularAluno, porque é exatamente essa ação que ele executa. Inclusive, como é um comando, um serviço que executa a matrícula do aluno, vou chamar de executa o método dele. E ele vai executar justamente o MatricularAlunoDto. Ele recebe esses dados, que vou chamar de $dados, para não ficar muito descritivo e te forçar a pensar em um nome melhor.
+
+[04:27] Ao matricular o aluno não vou retornar nada. E para matricular um aluno preciso de quê? Preciso de um repositório de alunos. Qual, em memória ou em PDO? Tanto faz. Preciso da interface. Como isso vai ser implementado tanto faz.
+
+[04:42] Vou inicializar. Repare que tenho minha classe, meu serviço de aplicação que vai realizar a matrícula de aluno com tudo que preciso. Então agora é só executar essa lógica. Vou copiar e trazer para cá, na linha 18, que vão ser só duas linhas. Em $this->repositorio.
+
+[05:08] Aqui eu poderia, por exemplo, no meu DTO, um método chamado novoAluno, que a partir desse DTO, com os dados que já estão nele, crio um aluno. Posso fazer dessa forma ou dessa outra, criando diretamente.
+
+[05:32] Não vamos ter telefone nesse, e dos dados vou pegar cpfAluno, nomeAluno, e emailAluno. Tenho o aluno, vou importar a classe, e com o aluno posso adicionar no repositório. Perfeito. Inclusive, caso eu esteja utilizando PDO, antes de chamar esse método executa eu poderia abrir uma transação e depois fechar essa transação. Isso é completamente possível.
+
+[06:05] Agora, se eu for utilizar a partir da web essa aplicação posso no meu controller chamar essa classe MatricularAluno, e a partir de um comando da linha de comando posso chamar essa classe. A partir de um controller da API também posso chamar essa classe. A partir de um comando que vai ser executado através de uma fila, através de mensageria, por exemplo, eu posso utilizar essa classe também.
+
+[06:30] Essa é a utilidade de use cases, ou application services. Essa é a ideia atrás desse padrão. A ideia é que consigamos isolar a lógica da aplicação, consigamos isolar a ideia de realizar um fluxo da nossa aplicação em uma classe específica.
+
+[06:52] Agora vou deixar como desafio, e acredito que esse seja o desafio mais complexo até agora, de você implementar a adição de um telefone. Isso vai ser um novo application service, e já te dou uma dica. Você vai precisar alterar nosso repositório porque ele não tem método de atualizar. Você vai ter um trabalhinho, tenta fazer, se esforça um pouco. Caso você tenha alguma dúvida, caso você não consiga, nosso fórum está aí para isso. Mas tenho certeza que com os conhecimentos que adquirimos até aqui você consegue realizar essa tarefa.
+
+[07:25] No próximo vídeo, vamos fazer juntos alguns testes nesse application service, só para entendermos que não só nosso domínio precisa ser testado. Também precisamos testar nossa aplicação. E exatamente isso que vamos fazer no próximo vídeo.
+
+@@05
+Para saber mais: Use cases
+
+Implementamos neste vídeo o que é conhecido no mundo da Arquitetura Limpa (Clean Architecture) como Use Cases.
+Os termos Use Case, Application Service e Command Handler são basicamente sinônimos e servem para fornecer pontos de entrada na sua aplicação, de forma independente dos mecanismos de entrega (Web, CLI, etc).
+
+@@06
+Testando a aplicação
+
+[00:00] Bem-vindos de volta. Se você se lembra bem, caso você tenha feito os cursos de padrão de projetos, falando sobre um padrão command e eu mostrei uma implementação que tinha alguma relação com o que vamos fazer agora, com algumas diferenças, mas já aprendemos esse padrão que vou aplicar. Caso você não tenha feito esse treinamento, vem comigo que vou te mostrar o que quero fazer.
+[00:25] O que recebemos na requisição matricular-aluno.php é o CPF, o nome, o e-mail, um DDD e um número, só isso. Posso inclusive, o que vejo como mais comum, ter dois casos de uso. Ter um caso de uso para criar o e-mail e um outro para adicionar telefone. Isso já vi até sendo feito em telas diferentes de acordo com a aplicação. Nós podemos seguir as duas abordagens.
+
+[00:58] Como nesse código fizemos de uma, recebendo somente um telefone, vou fazer agora diferente. Um serviço para você criar o aluno e outro para você adicionar telefones. Vamos fazer dessa forma.
+
+[01:14] Isso é algo que minha aplicação precisa realizar, é um fluxo que minha aplicação precisa realizar, então vai estar na minha camada de aplicação. Isso está relacionado ao aluno, então vou criar no módulo de aluno. E o que quero fazer é matricular um aluno, então vou criar um novo diretório chamado MatricularAluno.
+
+[01:35] Por que estou criando um novo diretório? Porque podemos ter vários casos de uso e cada caso de uso pode acabar tendo mais de um arquivo, de uma classe, como veremos aqui.
+
+[01:48] Antes de criar a execução desse serviço, quero poder informar quais são os dados que vou receber, porque pense comigo. Você não recebe da web um aluno. Você não recebe da linha de comando um aluno já criado. O que você recebe são dados primitivos, normalmente strings e inteiros, e a partir disso você vai criar um objeto do seu domínio.
+
+[02:13] Então, o que você recebe também pode ser especificado através de uma classe, e normalmente nesse ponto chamamos esse tipo de classe que vou criar agora de DTO, que é data transfer object, ou objeto de transferência de dados.
+
+[02:28] O que isso quer dizer? Quero pegar os dados da linha de comando e mandar para o meu domínio. Quero pegar os dados que venham da web, de um formulário, por exemplo, e mandar para o meu domínio. Quero pegar os dados que vieram em JSON e mandar para o meu domínio.
+
+[02:45] Então, esse DTO que vamos criar contém os dados necessários para executar esse caso de uso. Vou chamar de MatricularAlunoDto. Aqui só vou ter dados, não vou ter nenhum comportamento, isso é uma classe completamente anêmica, e é de propósito.
+
+[03:10] Vou ter o CPF do aluno, o nome do aluno, o e-mail do aluno, e a princípio é isso. Para eu matricular um aluno preciso disso. Peço o telefone em outra tela, por exemplo. Vou receber esses dados todos no construtor, inclusive vou utilizar o "Alt + Insert" que é mais rápido, e recebendo todos esses dados tenho meu objeto de transferência de dados pronto. Recebo o número do CPF, o nome e o e-mail dele e a partir disso, meu serviço de aplicação vai poder fazer o que ele precisa fazer. Então vamos criar esse serviço de aplicação.
+
+[03:57] Criar uma classe chamada MatricularAluno, porque é exatamente essa ação que ele executa. Inclusive, como é um comando, um serviço que executa a matrícula do aluno, vou chamar de executa o método dele. E ele vai executar justamente o MatricularAlunoDto. Ele recebe esses dados, que vou chamar de $dados, para não ficar muito descritivo e te forçar a pensar em um nome melhor.
+
+[04:27] Ao matricular o aluno não vou retornar nada. E para matricular um aluno preciso de quê? Preciso de um repositório de alunos. Qual, em memória ou em PDO? Tanto faz. Preciso da interface. Como isso vai ser implementado tanto faz.
+
+[04:42] Vou inicializar. Repare que tenho minha classe, meu serviço de aplicação que vai realizar a matrícula de aluno com tudo que preciso. Então agora é só executar essa lógica. Vou copiar e trazer para cá, na linha 18, que vão ser só duas linhas. Em $this->repositorio.
+
+[05:08] Aqui eu poderia, por exemplo, no meu DTO, um método chamado novoAluno, que a partir desse DTO, com os dados que já estão nele, crio um aluno. Posso fazer dessa forma ou dessa outra, criando diretamente.
+
+[05:32] Não vamos ter telefone nesse, e dos dados vou pegar cpfAluno, nomeAluno, e emailAluno. Tenho o aluno, vou importar a classe, e com o aluno posso adicionar no repositório. Perfeito. Inclusive, caso eu esteja utilizando PDO, antes de chamar esse método executa eu poderia abrir uma transação e depois fechar essa transação. Isso é completamente possível.
+
+[06:05] Agora, se eu for utilizar a partir da web essa aplicação posso no meu controller chamar essa classe MatricularAluno, e a partir de um comando da linha de comando posso chamar essa classe. A partir de um controller da API também posso chamar essa classe. A partir de um comando que vai ser executado através de uma fila, através de mensageria, por exemplo, eu posso utilizar essa classe também.
+
+[06:30] Essa é a utilidade de use cases, ou application services. Essa é a ideia atrás desse padrão. A ideia é que consigamos isolar a lógica da aplicação, consigamos isolar a ideia de realizar um fluxo da nossa aplicação em uma classe específica.
+
+[06:52] Agora vou deixar como desafio, e acredito que esse seja o desafio mais complexo até agora, de você implementar a adição de um telefone. Isso vai ser um novo application service, e já te dou uma dica. Você vai precisar alterar nosso repositório porque ele não tem método de atualizar. Você vai ter um trabalhinho, tenta fazer, se esforça um pouco. Caso você tenha alguma dúvida, caso você não consiga, nosso fórum está aí para isso. Mas tenho certeza que com os conhecimentos que adquirimos até aqui você consegue realizar essa tarefa.
+
+[07:25] No próximo vídeo, vamos fazer juntos alguns testes nesse application service, só para entendermos que não só nosso domínio precisa ser testado. Também precisamos testar nossa aplicação. E exatamente isso que vamos fazer no próximo vídeo.
+
+@@07
+Acaba aqui?
+
+[00:00] Bem-vindos de volta. Esse último vídeo vai ser só um bate-papo para conversarmos sobre o que mais estudar, se já está suficiente o conhecimento que temos até agora e etc.
+[00:11] Durante todo o treinamento deixei três imagens abertas, e não foi por acaso. Essas três imagens representam conteúdos que utilizamos bastante, embora nem sempre tenha ficado claro.
+
+[00:25] Utilizamos bastante o conceito da arquitetura hexagonal para separar nosso domínio, sejam as entidades, os value objects, os serviços. Separamos nosso domínio do mundo exterior, e isso já vimos que traz algumas vantagens. Quando criamos nosso comando da linha de comando não precisamos adicionar validação, não precisamos nos preocupar com a regra de negócios, porque já estava implementada.
+
+[00:50] Vimos como criar portas para essas regras, através de use cases, que são definimos nesse outro padrão arquitetural, através de service applications, através de algumas outras possibilidades.
+
+[01:05] Ainda não vimos durante esse treinamento como criar adapters, ou seja, como criar os comunicadores com o mundo exterior, mas isso é tão simples quanto criar esse arquivo. Esse pode ser um adapter na nossa arquivo hexagonal. E aqui eu poderia, por exemplo, criar aquele MatricularAlunoDto utilizando esses dados e chamar nosso use case embaixo.
+
+[01:32] A parte de adapter, a parte de conversa com o mundo externo, depende muito de cada aplicação, por isso não implementamos neste treinamento. Esses mesmos conceitos podem ser explicados dessa forma.
+
+[01:45] Vimos sobre a parte de entidades, e a parte do domínio em si, falamos bastante e implementamos um use case, só que não chegamos a implementar nenhum controller. Não implementamos porque não necessariamente nossa aplicação vai estar na web, não sei se ela vai utilizar formulários, se vai ser uma aplicação full stack, se vai ser só uma API recebendo dados em JSON. Isso fica, como comentei até aqui, como desafio para você.
+
+[02:10] Vou te dar algumas opções para você implementar. Para a parte de comando de interface pela linha de comando, você viu que isso seria suficiente. Para web, você normalmente utiliza outra aplicação. Por exemplo, você utiliza um framework, ou um micro framework. Fica aqui como desafio, como sugestão, você criar uma nova pasta na raiz do lado de src chamada web, e nessa pasta web você utiliza seu framework, como por exemplo slim, o mesos, que é um micro framework bem interessante para você adicionar a um projeto existente.
+
+[02:46] Ou então, dentro de src você pode criar uma outra pasta, que vai ser outra camada, de apresentação ou interface de usuário, ui. Com isso, dentro dessa pasta, dessa camada de apresentação você pode criar as telas, as APIs, os endpoints, os comandos, o que for.
+
+[03:08] Uma outra forma de implementar, que acredito que seja bem interessante e possa trazer aprendizados bem legais, é você disponibilizar todo esse projeto como um componente do composer, e já vimos como fazer isso no treinamento de composer, então você pode disponibilizar todo esse projeto através do composer e na sua aplicação web, utilizando Larável, Symfony, você faz um requirer dessa aplicação, no seu controller você vai utilizar a camada de aplicação. Perfeito, tudo funciona.
+
+[03:40] Ou você pode também utilizando um projeto Symfony console, utilizar essa camada de aplicação. Com isso você ganha diversas possibilidades, inclusive ter aplicações diferentes que utilizam essa mesma base de código. Isso te abre diversas possibilidades.
+
+[03:56] Só que, como o grande tio Ben falava, com grandes poderes vem grandes responsabilidades. Quando você utiliza uma arquitetura complexa como essa, você tende a ter a complexidade de manutenção maior e só vale a pena realizar esse tipo de tarefa se seu sistema realmente for complexo.
+
+[04:17] Vou abrir todas as nossas pastas para vocês verem uma coisa. Nossa aplicação hoje não faz absolutamente nada, não tenho nenhuma interface com usuário, e olha quantos arquivos já tenho criados.
+
+[04:35] Uma arquivo mais complexa tende a criar esse tipo de situação, muitos arquivos, muitas classes. Para isso valer a pena nosso sistema precisa ter regras complexas. Preciso que essa separação faça sentido. Em um CRUD, um sistema que só tem um cadastro de alunos, isso tudo se torna desnecessário. Eu poderia ter um sistema em MVC onde meu controller faz o insert, update, delete, e show de bola, tudo funciona, não tenho nenhum problema.
+
+[05:05] Agora, em aplicações que preciso escalar, talvez no futuro possa acabar sendo evoluída para várias aplicações, distribuídas, então uma arquitetura mais robusta faz toda a diferença.
+
+[05:15] Voltando para as nossas imagens, vimos bastante sobre esses dois conceitos, a parte externa de adapters na arquitetura hexagonal ou de controllers na clean architecture é mais simples de implementar e você já tem os conhecimentos necessários de cursos anteriores.
+
+[05:32] Essa imagem [Aula6_Video7_Imagem1] é de um estudo enorme e já ouvi algumas pessoas dizendo, e eu concordo, vem de um livro que é um dos livros mais importantes para arquivo de software para engenharia de software no mundo moderno, no mundo em que vivemos, em que desenvolvemos.
+
+[05:50] O livro de ddd, Domain-Driven Design, escrito pelo Eric Evans, é um livro que traz muitos conceitos, muitas vezes conceitos muito complexos que nem sempre vamos aplicar tudo, mas muita coisa já aplicamos nessa aplicação. Como por exemplo entidades, value objects, repositórios, são todos conceitos que vieram desse livro, dessa literatura, inclusive a separação por camadas também é uma sugestão que esse livro faz.
+
+[06:18] E no final de tudo chegamos na nossa própria arquitetura, que não precisa ter um nome, não precisa seguir à risca todas as recomendações dos outros, mas no geral ela segue bastante bem as recomendações feitas por várias literaturas, então é fácil estender nosso sistema. Se preciso de uma nova regra na minha aplicação, já sei onde adicionar. Se existe um bug acontecendo com alguma parte do meu domínio referente a aluno tenho um lugar bem definido onde buscar. Se preciso implementar um novo algoritmo de cifra de senha, pouco código vai precisar ser alterado. Só preciso implementar uma nova classe.
+
+[06:56] Nosso código está bem extensível, como vimos está bem testável, conseguimos criar alguns testes sem maiores problemas, está legível, faz sentido quando batemos o olho. Existem muitas coisas para melhorar ainda, mas esse foi um bom começo. Algumas sugestões de leitura ficam aqui. Sobre arquivo hexagonal, clean architecture, ou arquitetura limpa, sobre ddd, testes, boas práticas e princípio de orientação a objetos em geral. Todos esses estudos são muito importantes e casam muito bem com arquitetura de software.
+
+[07:35] Arquivo de software é um conceito que exige muito estudo, eu por exemplo aprendo bastante até hoje, estou em constante aprendizado, e espero ter conseguido passar um bom conhecimento para vocês. No próximo vídeo é aquele famoso até logo, então te espero lá para aquela revisão e um tchau.
+
+@@08
+Faça como eu fiz
+
+Chegou a hora de você seguir todos os passos realizados por mim durante esta aula. Caso já tenha feito, excelente. Se ainda não, é importante que você execute o que foi visto nos vídeos para poder continuar com os próximos cursos que tenham este como pré-re
+
+@@09
+Projeto do curso
+
+Caso queira, você pode baixar aqui o projeto completo implementado neste curso.
+
+@@10
+O que aprendemos?
+
+Nesta aula, aprendemos:
+Como fornecer acesso à nossa aplicação, através de Use Cases
+Na prática, que web, persistência e frameworks podem ser meras ferramentas
+Na prática, as vantagens de modelar uma aplicação, partindo do seu domínio
+
+@@11
+Conclusão
+
+[00:00] Meus parabéns por terem chegado até o final desse treinamento, sei que foi um treinamento relativamente denso, complexo, mas é um estudo muito importante e espero que vocês tenham tido o interessante, pego o gosto de estudar arquitetura. Como falei, inclusive no vídeo anterior, isso aqui é só a ponta do iceberg, existe muito estudo sobre arquitetura, eu estou em constante aprendizado, estou estudando bastante sobre a área ainda, então vale a pena ler livros, ler artigos, assistir palestras. Ler bastante sobre o assunto.
+[00:30] Nesse projeto que utilizamos como exemplo começamos criando algumas das classes do nosso domínio sem nem entender muito bem o que era domínio, e conforme fomos evoluindo entendemos o que era uma entidade, um value object, vimos como persistir entidades e value objects, vimos que existem particularidades entre cada um. Entendemos o conceito de módulos e começamos a separar nossa aplicação entre módulo de aluno e módulo de indicação.
+
+[01:00] Vimos também sobre arquitetura em si e arquitetura em camadas. Como dividimos nossa aplicação, foi nas camadas de domínio, aplicação e infraestrutura, vimos que existem ordens de dependências, em que a infraestrutura pode depender da aplicação, a aplicação pode depender do domínio, mas o contrário não é verdade. O domínio tem que ser muito bem isolado, não pode depender da aplicação, da infraestrutura.
+
+[01:24] Praticamos bastante isso. Inclusive, criamos até alguns testes. Poucos testes, mas criamos alguns testes. Deixei vários desafios, mas espero que vocês tenham conseguido fazer, ou estejam fazendo ainda. E no mais, espero que vocês tenham tirado proveito.
+
+[01:41] Mais uma vez vou falar isso bastante, sempre que vocês me perguntarem. É impossível uma pessoa ensinar tudo que tem para saber sobre arquitetura. É impossível em um, dois, três, quatro cursos aprender tudo que tem para saber, pessoas passaram anos, passaram sua vida inteira estudando sobre esse assunto, e é um assunto muito importante. Vale a pena o estudo, leve tudo que eu mostrei aqui como uma das possíveis alternativas. Leve tudo que mostrei como uma sugestão, não tome nada do que falei como verdade absoluta, porque primeiro o que pode ser verdade hoje pode não ser mais verdade amanhã, podem surgir tecnologias novas, e podem existir princípios, conceitos, padrões que nem eu conheço, por isso não apliquei, que poderiam resolver problemas que podemos acabar esbarrando nesse projeto.
+
+[02:30] Mais uma vez, tome tudo que falo como sugestão, e não como regra. Espero que você tenha gostado bastante. Caso você tenha alguma sugestão sobre como você aplicaria alguma parte diferente, pode abrir uma dúvida no fórum, adoro interagir por lá. No mais, espero que tenha gostado, que você faça ou já tenha feito os desafios que deixei. Não deixe de conferir os treinamentos sobre essa parte de boas práticas caso ainda não tenha feito, e te espero em futuros treinamentos aqui na Alura. Forte abraço e tchau.
+
