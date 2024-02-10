@@ -1086,3 +1086,175 @@ Nesta aula, aprendemos:
 O conceito de repositórios, já visto no treinamento de PDO
 A motivação para separar os repositórios em mais de uma camada
 Que é possível criar implementações que sejam mais fáceis de utilizar em nossos testes
+
+#### 10/02/2024
+
+@05-Services
+
+@@01
+Projeto da aula anterior
+
+Caso queira, você pode baixar aqui o projeto do curso no ponto em que paramos na aula anterior.
+
+https://caelum-online-public.s3.amazonaws.com/1774-php-arquitetura-introducao/04/php-arquitetura-projeto-aula-4-completo.zip
+
+@@02
+Sistema de login
+
+[00:00] Sejam muito bem-vindos de volta a mais um capítulo deste treinamento, onde estamos discutindo um pouco sobre arquitetura utilizando php. Vamos imaginar o seguinte cenário. Precisamos agora, além de matricular um aluno, salvar, fazer o que já fazemos com ele, conseguir armazenar a senha desse aluno para futuramente realizar login com ele, implementar um sistema de login para cada aluno.
+[00:26] Então, a primeira coisa que pensamos em fazer, a coisa mais simples, é criar, deixar uma senha para o aluno. Só que pensa comigo. Aqui, o aluno, na entidade de aluno, sabemos que em algum lugar vai ser persistida, até porque temos no nosso domínio um repositório de aluno. Se sabemos que essa entidade vai ser persistida em algum lugar, seja em arquivo, banco de dados, onde for, sabemos que não é uma boa prática armazenar a senha como texto puro.
+
+[01:00] Por exemplo, se eu fosse criar um aluno cuja senha é 1234, eu não salvaria assim. Eu precisaria de alguma forma criptografar ou fazer um hash dessa senha para que eu armazene um dado um pouco mais seguro, para que eu armazene a senha de forma que uma pessoa que consiga acesso à minha camada de persistência não consiga saber a senha.
+
+[01:24] Existem algumas estratégias para conseguir armazenar senha, para conseguir criptografar a senha, fazer hash de senha. Existem várias estratégias. Só que aqui eu deixo um questionamento. A responsabilidade de criptografar senha é de um aluno? Será que isso deveria estar dentro da classe aluno? Nessa entidade? Acredito que não.
+
+[01:50] E quando temos alguma regra, seja de negócio, seja uma regra mais da aplicação, ou até um detalhe de infraestrutura, que não faz parte de nenhuma entidade, nenhum value object, é muito comum que criemos uma classe específica para realizar essa ação. E uma classe específica para realizar uma ação, como já conversamos um pouco nos treinamentos de orientação a objetos, é uma classe de serviço.
+
+[02:20] O que queremos neste momento é criar um serviço que faça criptografia de senha. Por exemplo, um cifrador de senha, um critptografador de senha. Eu sei que não vou adicionar diretamente no aluno essa responsabilidade de cifrar senha. Então o que vou fazer? Exatamente o que falei. Vou criar uma classe específica para cifrar senhas.
+
+[02:44] Só que tem outro detalhe, outro porém. Criptografar senhas faz parte do negócio da aplicação? A empresa para qual estamos desenvolvendo o sistema é uma empresa de criptografia? Não é. Criptografia não faz parte do negócio da aplicação. O que faz parte do negócio é ter uma senha criptografada, mas como ela vai ser criptografada não faz parte do nosso domínio.
+
+[03:11] Ou seja, podemos utilizar md5, amanhã podemos mudar para sha, depois podemos mudar para uma biblioteca mais robusta, como lib sodium, utilizar um algoritmo argom, existem vários detalhes nesse tocante de segurança que poderíamos discutir, mas nada disso diz respeito ao domínio.
+
+[03:30] No domínio, o que vou fazer? Vou definir a interface do que preciso que esse serviço faça. Vou definir, e você pode pensar em algum nome melhor do que estou pensando, mas vou chamar de CifradorDeSenha. Essa interface vai simplesmente fazer isso, cifrar senhas.
+
+[03:53] Vamos definir quais métodos essa classe precisa ter. Primeiro vou ter o método public function cifrar, que recebe uma string senha e devolve a string cifrada, já criptografada, seja com hash, algoritmo de criptografia, como for.
+
+[04:12] E também vou ter um método verificar, que vai receber uma senha em texto e uma senha cifrada. E vai me dizer se essa senha cifrada corresponde a essa senha em texto.
+
+[04:32] Ficou confuso, não estou entendendo o que você quer fazer. Pensa comigo. Imagina que estou utilizando o algoritmo de hash md5. No método cifrar vou simplesmente chamar md5 em cima dessa senha e devolver o hash. Já em verificar vou receber a senha em texto e o hash em md5, e vou verificar se fazendo o hash de novo dessa senha em md5 vai ser igual a essa senha cifrada.
+
+[05:00] Dessa forma já pensamos bem rápido em um possível algoritmo para implementar esse cifrador de senha. Essa classe de serviço que vai nos fornecer a funcionalidade de realizar cifras de senhas tem uma possível implementação, que como acabei de falar, isso é um detalhe de infraestrutura. Não está no nosso domínio. No próximo vídeo vamos fazer exatamente isso. Vamos criar esse serviço lá na nossa camada de infraestrutura.
+
+@@03
+Serviço de infraestrutura
+
+[00:00] Bem-vindos de volta. Vamos implementar algum algoritmo para poder criar a cifra da senha, a criptografia da senha.
+interface CifradorDeSenha
+{
+    public function cifrar(string $senha); string;
+    pubic function verificar(string $senhaEmTexto, string $senhaCifrada) boot;
+}COPIAR CÓDIGO
+[00:10] Vamos na nossa infraestrutura criar uma nova classe. Primeiro vou implementar a "CifradorDeSenhaMd5". Com essa classe vou implementar o algoritmo md5. Implemento um CifradorDeSenhaMd5. E de novo você pode pensar em algum nome melhor do que estou pensando aqui.
+
+[00:36] Vou retornar a senha cifrada em md5(). Para verificar se a senha em texto bate com a senha cifrada vou verificar se o md5 da senha em texto é igual a senha cifrada. Simples assim e já temos um algoritmo de cifra de senha implementado, muito fácil, muito simples.
+
+classic CifradorDeSenhaMd5 implements CifradorDeSenha
+{
+
+    public function cifrar(string $senha): string
+    {
+        return md5($senha);
+    }
+
+    public function verificar(string $senhaEmTexto string $senhaCifrada): boot
+    {
+        return md5($senhaEmTexto) === $senhaCifrada;
+    }
+}COPIAR CÓDIGO
+[01:00] Como foi muito simples, podemos criar um outro. "CifradorDeSenhaPhp", porque usa a biblioteca padrão do php de senhas. E como funciona a biblioteca padrão de senhas do php? Já trabalhamos com ela lá no nosso curso de MVC. Vamos relembrar como funciona.
+
+[01:22] como faço para cifrar uma senha? Com password_hashe passo a senha. Posso informar também qual o algoritmo. Vou utilizar o argon2id, que hoje, no momento que estou gravando, é o algoritmo mais forte que o php tem implementado. Esse algoritmo é ganhador de prêmios sobre segurança. Eu que não sou expert em segurança vou escolher esse. Caso você conheça algoritmos de segurança, caso você entenda do assunto, você pode pesquisar quais algoritmos o php implementa por padrão e escolher um pouco melhor.
+
+[02:14] Já implementei o método de cifrar. Para verificar continua sendo muito simples. Vou fazer um password_verify e vou verificar se a senha em texto é igual a senha cifrada. Simples assim. Já tenho duas implementações de cifrador de senha muito simples, e quando for implementar minha aplicação posso escolher se vou querer utilizar md5 ou a biblioteca padrão do php e senha.
+
+classic CifradorDeSenhaMd5 implements CifradorDeSenha
+{
+
+    public function cifrar(string $senha): string
+    {
+        return password_hasg($senha, algo: PASSWORD_ARGON2ID);
+    }
+
+    public function verificar(string $senhaEmTexto string $senhaCifrada): boot
+    {
+        return password_verify($senhaEmTexto, $senhaCifrada);
+    }
+}COPIAR CÓDIGO
+[02:45] Com isso ganhamos muita facilidade para implementar diversos serviços, diversas implementações diferentes de serviços que nosso domínio possa precisar. No nosso caso, eu sei que meu domínio precisa saber cifrar senhas, mas como ele vai cifrar não importa para nós. Aqui temos uma diferença entre o que seria um serviço de domínio, se tivesse implementação e regras de negócio, e essa é a definição de um serviço de infraestrutura. Ou seja, é uma classe que vai realizar tarefas que não fazem parte de nenhuma entidade, de nenhum value object, mas que precisam de detalhes de infraestrutura, logo ficam na camada de infraestrutura.
+
+[03:33] Com isso já começamos a entender um pouco melhor a separação entre serviços de domínio e serviços de infraestrutura. Mas vamos continuar falando de serviços durante esse capítulo.
+
+@@04
+Services
+
+Mais uma vez estamos revendo conceitos com mais detalhes. Services é um conceito que já foi explicado nos cursos de orientação a objetos.
+O que é uma classe de serviço, ou Service?
+
+Uma classe que executa alguma ação que não pertence a nenhuma entidade ou VO
+ 
+Alternativa correta! As nossas regras de negócio devem ficar nas entidades e VOs, mas nem sempre isso faz sentido. Quando precisarmos executar alguma ação que não faça parte de nenhuma entidade nem de um VO, podemos utilizar um Service.
+Alternativa correta
+Uma classe que estende a funcionalidade de uma entidade existente
+ 
+Alternativa correta
+Uma classe do nosso framework que está configurada para ser carregada automaticamente
+
+@@05
+E-mail por indicação
+
+[00:00] Bem-vindos de volta. Vamos recapitular bem rápido o que foi falado no último vídeo, e vamos aumentar um pouco a complexidade das coisas que temos para entender. Primeiro, falamos sobre o que é uma classe de serviço.
+[00:15] Uma classe de serviço é uma classe que realiza alguma ação que não cabe nem em uma entidade, nem em um value object, ou no repositório. É uma classe que realiza alguma ação que não teve outro lugar, que não pertence a nenhum outro lugar no nosso domínio, no nosso sistema.
+
+[00:33] E vimos também que a diferença entre serviços de domínio e serviços de infraestrutura está na sua natureza, e não na forma como implementamos. Um serviço de infraestrutura é um serviço que precisa de detalhes externos ao nosso domínio. Por exemplo, realizar criptografia de senha não faz parte do nosso domínio, como vamos realizar não importa. Então, um serviço de domínio não vai tratar desses detalhes de como criptografar, qual biblioteca utilizar, etc.
+
+[01:05] Aqui nós implementamos dois serviços de infraestrutura, e para isso utilizamos uma interface no nosso domínio. Qual seria um serviço de domínio então? Se a partir de um produto eu precisasse gerar um pedido, e tem uma regra no meu negócio, no meu modelo de negócios, existe uma regra para realizar essa ação, aí talvez teríamos um serviço de domínio. Mas no geral, na maioria das vezes vamos acabar utilizando serviços de infraestrutura, que foi o que vimos até agora, e vamos começar a falar um pouco sobre o que pode ser visto como um serviço, só que em outra camada, em uma camada que ainda não conversamos.
+
+[01:50] Vou contar um caso para vocês que vamos precisar implementar. Já vimos no nosso domínio que existe a possibilidade de criarmos indicações, certo? Inclusive, não me lembro de ter deixado esse desafio, mas caso eu não tenha deixado fica aqui agora, para você implementar um repositório de indicação, seja com doctrine, PDO, com a tecnologia que você escolher.
+
+[02:15] Além disso, sabemos que depois que um aluno indicar outro, o aluno indicado precisa receber um e-mail, mas isso é uma regra da nossa aplicação. A aplicação precisa fazer isso. A pessoa de negócios, a pessoa que busca relatórios de indicação para fazer as análises, essa pessoa não precisa saber que o aluno recebeu o e-mail, se esse e-mail foi entregue ou não. Isso não faz parte do nosso negócio, faz parte da nossa aplicação. É uma regra da aplicação.
+
+[02:46] Deixa eu relembrar o que já vimos antes. Por exemplo, no clean architecture, temos application business rules, ou seja, regras de negócio da aplicação, regras de negócio que não fazem parte da empresa, e sim do sistema que estamos criando.
+
+[03:03] Como definimos? Pegamos conceitos dessa arquitetura, dessa arquitetura, e dessa arquitetura, e bolamos a nossa arquitetura? Pelo que estou falando aqui faz sentido criar essa lógica de enviar e-mails nessa camada de aplicação, então vamos criar essa pasta chamada aplicação.
+
+[03:25] Como eu abreviei infra, vou abreviar aplicação também para app. Caso você prefira, pode usar aplicação. Vou usar aplicação mesmo para não causar confusões. Temos a camada de domínio, de infraestrutura, vou criar uma camada de aplicação, que o que for relacionado a indicação vou colocar dentro de um módulo de indicação, na camada de aplicação. Nada diferente do que já fizemos. E aqui minha aplicação vai precisar enviar um e-mail, EnviaEmailDeIndicacao.
+
+[04:06] Isso é um serviço da minha aplicação, uma regra que precisa ser executada na minha aplicação, faz todo sentido. Então, o que vou precisar fazer? No método que vou chamar de envia, poderia ser qualquer nome, vou receber um aluno. Eu poderia, obviamente, receber direto o e-mail, não tem problema nenhum, mas vou receber o aluno só para ficar mais legível, para saber que é o aluno indicado. Então vamos lá.
+
+[04:37] Como vou enviar esse e-mail? Vou enviar utilizando a função mail php? Vou utilizar enviando phpmailer, o swift mailer? Existem várias bibliotecas do php que podem enviar e-mails. Então o que vou fazer nesse caso? Mais uma vez entramos no problema do serviço de domínio, onde sabemos o que queremos executar. Sabíamos na parte de cifrar senhas o que queríamos executar, mas não como.
+
+[05:10] Então, o envio de um e-mail de indicação também sabemos que precisa ser executado, mas como? Vamos definir que isso é uma interface. Se é uma interface não temos implementação.
+
+[05:25] Vamos deixar um pouco mais claro, enviaPara o alunoIndicado. Agora temos na nossa camada de aplicação, que por enquanto não tem praticamente nada e vamos falar bem mais sobre ela ainda, definimos um serviço, só que ainda não temos implementação dele.
+
+[05:44] Como já tenho feito até aqui, vou deixar desafios para você. Quero que você faça duas implementações dessa interface. Uma utilizando a função mail do php. Caso você não conheça é só acessar php.net/mail. Nessa url você tem a documentação da função mail, como ela funciona, como faz para enviar e-mails.
+
+[06:14] E também vou deixar um desafio para você utilizar alguma biblioteca para enviar esse e-mail. Pode ser php mailer, swift mailer, sinfony mailer, zend mailer, a biblioteca que você quiser, que caso você já conheça alguma pode utilizar essa, se eu não citei ainda. Quero que você dê uma olhada em algumas, escolha uma dessas bibliotecas e implemente essa interface lá na camada de infraestrutura, utilizando essa biblioteca.
+
+[06:42] Com isso já entendemos um pouco o que é um serviço. Vimos a diferença entre serviços de domínio que fazem parte do que nosso domínio quer, do que a lógica da empresa quer, porque nossa empresa, a pessoa que está gerenciando nosso time disse “eu preciso que a senha do aluno esteja cifrada. Como isso vai ser feito não sei, mas isso tem que ser feito”.
+
+[07:08] Já o envio de um e-mail não faz parte da empresa. Faz parte somente da nossa aplicação e faz parte de uma parte de notificação de ações que estão acontecendo. Isso pode ficar na nossa aplicação.
+
+[07:23] Se eu colocasse essa interface lá no meu domínio, estaria errado, não faria sentido? Poderia fazer sentido sim, desde que isso fizesse parte da empresa, algo que a equipe de negócios pediu, algo que a equipe de negócios disse que seja necessário. Se for o caso, isso fica na camada de domínio.
+
+[07:42] Como no nosso caso hipotético isso não é um requisito de negócios, isso é algo que só nossa aplicação está decidindo fazer para notificar, então estamos colocando na camada de aplicação.
+
+[07:54] O que quero dizer é que cada caso é um caso. Em cada sistema, cada empresa, um serviço pode fazer sentido estar na camada de domínio, outro faz sentido estar na camada de aplicação, depende muito. No nosso caso, no nosso exemplo implementamos dessa forma. Poderia ser implementado de forma diferente sem violar nenhuma regra, sem problema nenhum.
+
+[08:20] Só que agora, deixados os desafios para vocês, sabemos que por enquanto não tem nada para ser acessado na nossa aplicação. Ainda não temos o que foi visto naqueles padrões o que é chamado de use case. Não temos nenhum use case ainda, não temos nenhuma porta, nada que recebe alguma requisição, que recebe alguma informação para executar nossa lógica. Está faltando esse detalhe, está faltando um ponto de acesso à nossa aplicação. E como estou falando bastante, falta um ponto de acesso à nossa aplicação. É justamente sobre essa camada que vamos conversar um pouco mais no próximo capítulo.
+
+@@06
+Para saber mais: Aplicação
+
+O que entra na camada de aplicação pode ser um assunto polêmico. A interface de envio de e-mail que acabamos de criar poderia muito bem estar em nosso domínio, sem ferir nenhuma regra.
+Como desafio, transfira essa interface para a camada de domínio.
+
+Vamos falar mais sobre a camada de aplicação na próxima aula.
+
+@@07
+Faça como eu fiz
+
+Chegou a hora de você seguir todos os passos realizados por mim durante esta aula. Caso já tenha feito, excelente. Se ainda não, é importante que você execute o que foi visto nos vídeos para poder continuar com a próxima aula.
+
+Continue com os seus estudos, e se houver dúvidas, não hesite em recorrer ao nosso fórum!
+
+@@08
+O que aprendemos?
+
+Nesta aula, aprendemos:
+O conceito de Services
+Que há Domain, Application e Infrastructure Services
+Domain Services são classes que representam uma ação entre mais de uma entidade
+Application Services controlam o fluxo de alguma regra em nossa aplicação
+Infrastructure Services são implementações de interfaces presentes nas camadas de domínio ou de aplicação
