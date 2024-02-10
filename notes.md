@@ -1462,6 +1462,8 @@ Projeto do curso
 
 Caso queira, você pode baixar aqui o projeto completo implementado neste curso.
 
+https://caelum-online-public.s3.amazonaws.com/1774-php-arquitetura-introducao/06/php-arquitetura-projeto-aula-6-completo.zip
+
 @@10
 O que aprendemos?
 
